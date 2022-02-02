@@ -4,7 +4,10 @@
 #   /EFI/BOOT/grub.cfg - Chainloads main bootloader
 #   /UsbInvocationScript.txt - Enables USB boot on Dell 3000 series
 #
+
 ARG EVE_BUILDER_IMAGE=lfedge/eve-alpine:6.7.0
+FROM lfedge/eve-installer:aabbccffee00112233-amd64 as installer-rust
+
 FROM ${EVE_BUILDER_IMAGE} AS build
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 ENV BUILD_PKGS mkinitfs grep patch
@@ -14,13 +17,14 @@ RUN eve-alpine-deploy.sh
 WORKDIR /out
 RUN echo "mtools_skip_check=1" >> etc/mtools.conf
 RUN mkdir -p efifs parts root bits config persist opt/zededa opt/debug lib/modules run sys
-COPY make-raw install grub.cfg.in UsbInvocationScript.txt ./
+COPY make-raw grub.cfg.in UsbInvocationScript.txt ./
 COPY grub.stage1 ./usr/lib/grub/i386-pc/boot.img
+COPY --from=installer-rust /sbin/installer ./sbin/installer
 
 # now lets create an edge container
 # FIXME: 003-installer? why not linuxkit build?
 WORKDIR /eco/media/root-rw/root/containers/onboot/003-installer
-COPY runtime.json config.json ./
+# COPY runtime.json config.json ./
 RUN mv /out rootfs
 # hadolint ignore=DL3003
 RUN (cd /eco && find . -xdev | grep -v installer.img | sort | cpio --quiet -o -H newc) | gzip > rootfs/installer.img
