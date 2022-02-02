@@ -6,10 +6,11 @@
             "gid": 0
         },
         "args": [
-            "sh", "-c", "/install > /dev/console 2>&1"
+            "/installer"
         ],
         "env": [
-            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/zededa/bin"
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/zededa/bin",
+            "RUST_BACKTRACE=full"
         ],
         "cwd": "/",
         "capabilities": {
@@ -188,6 +189,16 @@
             ]
         },
         {
+            "destination": "/dev",
+            "type": "bind",
+            "source": "/dev",
+            "options": [
+                "rw",
+                "rbind",
+                "rshared"
+            ]
+        },
+        {
             "destination": "/root",
             "type": "bind",
             "source": "/media/root-ro",
@@ -277,16 +288,6 @@
             "source": "tmpfs",
             "options": [
                 "rw"
-            ]
-        },
-        {
-            "destination": "/dev",
-            "type": "bind",
-            "source": "/dev",
-            "options": [
-                "rw",
-                "rbind",
-                "rshared"
             ]
         },
         {

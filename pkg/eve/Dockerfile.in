@@ -15,7 +15,7 @@ RUN rm /initrd.img /installer.img
 FROM MKCONF_TAG as conf
 
 COPY --from=iso / /
-COPY --from=raw / /
+#COPY --from=raw / /
 COPY --from=ipxe / /
 COPY --from=tools /out/ /
 COPY installer /bits

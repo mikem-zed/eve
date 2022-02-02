@@ -347,6 +347,7 @@ $(BIOS_IMG): PKG=uefi
 $(UBOOT_IMG): PKG=u-boot
 $(EFI_PART) $(BOOT_PART) $(INITRD_IMG) $(INSTALLER_IMG) $(KERNEL_IMG) $(IPXE_IMG) $(BIOS_IMG) $(UBOOT_IMG): $(LINUXKIT) | $(INSTALLER)
 	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
 	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
 	$(QUIET): $@: Succeeded
 
@@ -537,6 +538,9 @@ pkg/xen-tools: pkg/uefi eve-xen-tools
 	$(QUIET): $@: Succeeded
 pkg/qrexec-dom0: pkg/xen-tools eve-qrexec-dom0
 	$(QUIET): $@: Succeeded
+
+eve-installer: LINUXKIT_OPTS:=$(LINUXKIT_OPTS) -hash aabbccffee00112233
+
 pkg/%: eve-% FORCE
 	$(QUIET): $@: Succeeded
 

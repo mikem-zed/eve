@@ -1,3 +1,28 @@
 org: lfedge
 image: eve-installer
 network: true
+config: 
+devices:
+- path: "/dev/console"
+  type: c
+  major: 5
+  minor: 1
+  mode: 0666   
+- path: all
+  type: b
+- path: "/dev/tty"
+  type: c
+  major: 5
+  minor: 0
+  mode: 0666  
+- path: all
+  type: c
+
+capabilities:
+    - all
+binds:
+  #   - /run:/run
+  #   - /tmp:/tmp
+- /dev:/dev
+  #   - /sys:/sys
+rootfsPropagation: shared
