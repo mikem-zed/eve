@@ -31,7 +31,7 @@ ROOTFS_FORMAT=squash
 # Image type for installer image
 INSTALLER_IMG_FORMAT=raw
 # SSH port to use for running images live
-SSH_PORT=2222
+SSH_PORT=2224
 # ports to proxy into a running EVE instance (in ssh notation with -L)
 SSH_PROXY=-L6000:localhost:6000
 # ssh key to be used for getting into an EVE instance

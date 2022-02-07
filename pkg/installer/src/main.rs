@@ -5,7 +5,6 @@ use crossterm::{
 };
 use rand::{distributions::Alphanumeric, prelude::*, rngs::ThreadRng};
 use serde::{Deserialize, Serialize};
-use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 use std::{borrow::Borrow, io};
@@ -13,21 +12,24 @@ use std::{
     collections::{HashMap, HashSet},
     fs,
 };
-use thiserror::Error;
-use tui::{
-    backend::CrosstermBackend,
-    layout::{Alignment, Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
-    text::{Span, Spans},
-    widgets::{
-        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table, Tabs,
-    },
-    Terminal,
-};
+// use std::{fmt::Result, sync::mpsc};
+// use thiserror::Error;
+// use tui::{
+//     backend::CrosstermBackend,
+//     layout::{Alignment, Constraint, Direction, Layout},
+//     style::{Color, Modifier, Style},
+//     text::{Span, Spans},
+//     widgets::{
+//         Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table, Tabs,
+//     },
+//     Terminal,
+// };
 
 use std::os::unix::io::{IntoRawFd, RawFd};
 
 use libc::size_t;
+
+use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
@@ -40,13 +42,13 @@ pub struct FileDesc {
     close_on_drop: bool,
 }
 
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("error reading the DB file: {0}")]
-    ReadDBError(#[from] io::Error),
-    #[error("error parsing the DB file: {0}")]
-    ParseDBError(#[from] serde_json::Error),
-}
+// #[derive(Error, Debug)]
+// pub enum Error {
+//     #[error("error reading the DB file: {0}")]
+//     ReadDBError(#[from] io::Error),
+//     #[error("error parsing the DB file: {0}")]
+//     ParseDBError(#[from] serde_json::Error),
+// }
 
 enum Event<I> {
     Input(I),
@@ -126,7 +128,7 @@ pub fn tty_fd() -> Result<FileDesc> {
         println!("TTY===");
         (
             fs::OpenOptions::new()
-                .read(false)
+                .read(true)
                 .write(true)
                 .open("/dev/tty")?
                 .into_raw_fd(),
@@ -160,21 +162,96 @@ impl KernelCmdline {
         });
         Ok(self)
     }
-    fn exist(&self, key: &str) -> bool {
-        self.params.get(key).is_some()
+    fn get_bool(&self, key: &str) -> bool {
+        self.params.contains_key(key)
     }
 
-    fn get_value(&self, key: &str) -> &Option<String> {
-        if let Some(val) = self.params.get(key) {
-            return val;
-        }
-        &None
+    fn get_str(&self, key: &str) -> Option<String> {
+        self.params.get(key).and_then(|e| e.to_owned())
     }
+}
+
+#[derive(Debug, Default)]
+struct InstallerConfig {
+    eve_nuke_disks: Option<Vec<String>>,
+    eve_nuke_all_disks: bool,
+    eve_install_disk: Option<String>,
+    eve_persist_disk: Option<Vec<String>>,
+    eve_install_server: Option<String>,
+    eve_install_skip_rootfs: bool,
+    eve_install_skip_config: bool,
+    eve_install_skip_persist: bool,
+    eve_pause_before_install: bool,
+    eve_pause_after_install: bool,
+    eve_blackbox: bool,
+    eve_soft_serial: Option<String>,
+    eve_reboot_after_install: bool,
+    // helper fields
+    persist_fs_zfs: bool,
+}
+
+impl InstallerConfig {
+    fn from_cmdline(cmdline: &KernelCmdline) -> Self {
+        let mut config = Self::default();
+        config.eve_nuke_all_disks = cmdline.get_bool("eve_nuke_all_disks");
+        config.eve_blackbox = cmdline.get_bool("eve_blackbox");
+        config.eve_install_skip_config = cmdline.get_bool("eve_install_skip_config");
+        config.eve_install_skip_persist = cmdline.get_bool("eve_install_skip_persist");
+        config.eve_install_skip_rootfs = cmdline.get_bool("eve_install_skip_rootfs");
+        config.eve_pause_after_install = cmdline.get_bool("eve_pause_after_install");
+        config.eve_pause_before_install = cmdline.get_bool("eve_pause_before_install");
+        config.eve_soft_serial = cmdline.get_str("eve_soft_serial");
+
+        config.eve_install_server = cmdline.get_str("eve_install_server");
+        config.eve_install_disk = cmdline.get_str("eve_install_disk");
+
+        let eve_persist_disk = cmdline.get_str("eve_persist_disk");
+
+        config.eve_persist_disk = eve_persist_disk
+            .as_ref()
+            .map(|e| e.trim().split(",").map(|e| e.to_string()).collect());
+
+        config.persist_fs_zfs = eve_persist_disk.map_or(false, |e| e.trim().ends_with(","));
+
+        config.eve_blackbox = cmdline.get_bool("eve_blackbox");
+        config
+    }
+}
+
+fn nuke_partition(disk: &str) -> Result<()> {
+    Ok(())
+}
+
+fn run_os_command(cmdline: &str) -> Result<()> {
+    let output = if let Some((cmd, params)) = cmdline.trim().split_once(' ') {
+        Command::new(cmd).args(params.split(" ")).output()?
+    } else {
+        Command::new(cmdline.trim()).output()?
+    };
+
+    if output.status.success() {
+        String::from_utf8(output.stdout)?
+            .lines()
+            .for_each(|line| println!("{}", line));
+    } else {
+        String::from_utf8(output.stderr)?
+            .lines()
+            .for_each(|line| println!("{}", line));
+    }
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
     let cmd_line = KernelCmdline::new().parse()?;
-    println!("{:?}", cmd_line);
+    let config = InstallerConfig::from_cmdline(&cmd_line);
+    println!("{:#?}", cmd_line);
+    println!("{:#?}", config);
+
+    run_os_command("mount")?;
+    run_os_command("lsblk -anlb -o TYPE,NAME,SIZE,TRAN")?;
+    let fd = tty_fd()?;
+    println!("Raw desc: {}", fd.raw_fd());
     Ok(())
 }
 
@@ -344,157 +421,157 @@ fn main() -> Result<()> {
 //     Ok(())
 // }
 
-fn render_home<'a>() -> Paragraph<'a> {
-    let home = Paragraph::new(vec![
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("Welcome")]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("to")]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::styled(
-            "pet-CLI",
-            Style::default().fg(Color::LightBlue),
-        )]),
-        Spans::from(vec![Span::raw("")]),
-        Spans::from(vec![Span::raw("Press 'p' to access pets, 'a' to add random new pets and 'd' to delete the currently selected pet.")]),
-    ])
-    .alignment(Alignment::Center)
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White).bg(Color::Black))
-            .title("Home")
-            .border_type(BorderType::Plain),
-    );
-    home
-}
+// fn render_home<'a>() -> Paragraph<'a> {
+//     let home = Paragraph::new(vec![
+//         Spans::from(vec![Span::raw("")]),
+//         Spans::from(vec![Span::raw("Welcome")]),
+//         Spans::from(vec![Span::raw("")]),
+//         Spans::from(vec![Span::raw("to")]),
+//         Spans::from(vec![Span::raw("")]),
+//         Spans::from(vec![Span::styled(
+//             "pet-CLI",
+//             Style::default().fg(Color::LightBlue),
+//         )]),
+//         Spans::from(vec![Span::raw("")]),
+//         Spans::from(vec![Span::raw("Press 'p' to access pets, 'a' to add random new pets and 'd' to delete the currently selected pet.")]),
+//     ])
+//     .alignment(Alignment::Center)
+//     .block(
+//         Block::default()
+//             .borders(Borders::ALL)
+//             .style(Style::default().fg(Color::White).bg(Color::Black))
+//             .title("Home")
+//             .border_type(BorderType::Plain),
+//     );
+//     home
+// }
 
-fn render_pets<'a>(pet_list_state: &ListState) -> (List<'a>, Table<'a>) {
-    let pets = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default().fg(Color::White).bg(Color::Black))
-        .title("Pets")
-        .border_type(BorderType::Plain);
+// fn render_pets<'a>(pet_list_state: &ListState) -> (List<'a>, Table<'a>) {
+//     let pets = Block::default()
+//         .borders(Borders::ALL)
+//         .style(Style::default().fg(Color::White).bg(Color::Black))
+//         .title("Pets")
+//         .border_type(BorderType::Plain);
 
-    let pet_list = read_db().expect("can fetch pet list");
-    let items: Vec<_> = pet_list
-        .iter()
-        .map(|pet| {
-            ListItem::new(Spans::from(vec![Span::styled(
-                pet.name.clone(),
-                Style::default().bg(Color::Black),
-            )]))
-        })
-        .collect();
+//     let pet_list = read_db().expect("can fetch pet list");
+//     let items: Vec<_> = pet_list
+//         .iter()
+//         .map(|pet| {
+//             ListItem::new(Spans::from(vec![Span::styled(
+//                 pet.name.clone(),
+//                 Style::default().bg(Color::Black),
+//             )]))
+//         })
+//         .collect();
 
-    let selected_pet = pet_list
-        .get(
-            pet_list_state
-                .selected()
-                .expect("there is always a selected pet"),
-        )
-        .expect("exists")
-        .clone();
+//     let selected_pet = pet_list
+//         .get(
+//             pet_list_state
+//                 .selected()
+//                 .expect("there is always a selected pet"),
+//         )
+//         .expect("exists")
+//         .clone();
 
-    let list = List::new(items).block(pets).highlight_style(
-        Style::default()
-            .bg(Color::Yellow)
-            .fg(Color::Black)
-            .add_modifier(Modifier::BOLD),
-    );
+//     let list = List::new(items).block(pets).highlight_style(
+//         Style::default()
+//             .bg(Color::Yellow)
+//             .fg(Color::Black)
+//             .add_modifier(Modifier::BOLD),
+//     );
 
-    let pet_detail = Table::new(vec![Row::new(vec![
-        Cell::from(Span::raw(selected_pet.id.to_string())),
-        Cell::from(Span::raw(selected_pet.name)),
-        Cell::from(Span::raw(selected_pet.category)),
-        Cell::from(Span::raw(selected_pet.age.to_string())),
-        Cell::from(Span::raw(selected_pet.created_at.to_string())),
-    ])])
-    .header(Row::new(vec![
-        Cell::from(Span::styled(
-            "ID",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )),
-        Cell::from(Span::styled(
-            "Name",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )),
-        Cell::from(Span::styled(
-            "Category",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )),
-        Cell::from(Span::styled(
-            "Age",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )),
-        Cell::from(Span::styled(
-            "Created At",
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )),
-    ]))
-    .block(
-        Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().fg(Color::White).bg(Color::Black))
-            .title("Detail")
-            .border_type(BorderType::Plain),
-    )
-    .widths(&[
-        Constraint::Percentage(5),
-        Constraint::Percentage(20),
-        Constraint::Percentage(20),
-        Constraint::Percentage(5),
-        Constraint::Percentage(20),
-    ]);
+//     let pet_detail = Table::new(vec![Row::new(vec![
+//         Cell::from(Span::raw(selected_pet.id.to_string())),
+//         Cell::from(Span::raw(selected_pet.name)),
+//         Cell::from(Span::raw(selected_pet.category)),
+//         Cell::from(Span::raw(selected_pet.age.to_string())),
+//         Cell::from(Span::raw(selected_pet.created_at.to_string())),
+//     ])])
+//     .header(Row::new(vec![
+//         Cell::from(Span::styled(
+//             "ID",
+//             Style::default()
+//                 .add_modifier(Modifier::BOLD)
+//                 .bg(Color::Black),
+//         )),
+//         Cell::from(Span::styled(
+//             "Name",
+//             Style::default()
+//                 .add_modifier(Modifier::BOLD)
+//                 .bg(Color::Black),
+//         )),
+//         Cell::from(Span::styled(
+//             "Category",
+//             Style::default()
+//                 .add_modifier(Modifier::BOLD)
+//                 .bg(Color::Black),
+//         )),
+//         Cell::from(Span::styled(
+//             "Age",
+//             Style::default()
+//                 .add_modifier(Modifier::BOLD)
+//                 .bg(Color::Black),
+//         )),
+//         Cell::from(Span::styled(
+//             "Created At",
+//             Style::default()
+//                 .add_modifier(Modifier::BOLD)
+//                 .bg(Color::Black),
+//         )),
+//     ]))
+//     .block(
+//         Block::default()
+//             .borders(Borders::ALL)
+//             .style(Style::default().fg(Color::White).bg(Color::Black))
+//             .title("Detail")
+//             .border_type(BorderType::Plain),
+//     )
+//     .widths(&[
+//         Constraint::Percentage(5),
+//         Constraint::Percentage(20),
+//         Constraint::Percentage(20),
+//         Constraint::Percentage(5),
+//         Constraint::Percentage(20),
+//     ]);
 
-    (list, pet_detail)
-}
+//     (list, pet_detail)
+// }
 
-fn read_db() -> Result<Vec<Pet>, Error> {
-    let db_content = fs::read_to_string(DB_PATH)?;
-    let parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
-    Ok(parsed)
-}
+// fn read_db() -> Result<Vec<Pet>, Error> {
+//     let db_content = fs::read_to_string(DB_PATH)?;
+//     let parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
+//     Ok(parsed)
+// }
 
-fn add_random_pet_to_db() -> Result<Vec<Pet>, Error> {
-    let mut rng = rand::thread_rng();
-    let db_content = fs::read_to_string(DB_PATH)?;
-    let mut parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
-    let catsdogs = match rng.gen_range(0..1) {
-        0 => "cats",
-        _ => "dogs",
-    };
+// fn add_random_pet_to_db() -> Result<Vec<Pet>, Error> {
+//     let mut rng = rand::thread_rng();
+//     let db_content = fs::read_to_string(DB_PATH)?;
+//     let mut parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
+//     let catsdogs = match rng.gen_range(0..1) {
+//         0 => "cats",
+//         _ => "dogs",
+//     };
 
-    let random_pet = Pet {
-        id: rng.gen_range(0..9999999),
-        name: "hello".to_owned(), //rng.sample_iter(Alphanumeric).take(10).collect(),
-        category: catsdogs.to_owned(),
-        age: rng.gen_range(1..15),
-        created_at: Utc::now(),
-    };
+//     let random_pet = Pet {
+//         id: rng.gen_range(0..9999999),
+//         name: "hello".to_owned(), //rng.sample_iter(Alphanumeric).take(10).collect(),
+//         category: catsdogs.to_owned(),
+//         age: rng.gen_range(1..15),
+//         created_at: Utc::now(),
+//     };
 
-    parsed.push(random_pet);
-    fs::write(DB_PATH, &serde_json::to_vec(&parsed)?)?;
-    Ok(parsed)
-}
+//     parsed.push(random_pet);
+//     fs::write(DB_PATH, &serde_json::to_vec(&parsed)?)?;
+//     Ok(parsed)
+// }
 
-fn remove_pet_at_index(pet_list_state: &mut ListState) -> Result<(), Error> {
-    if let Some(selected) = pet_list_state.selected() {
-        let db_content = fs::read_to_string(DB_PATH)?;
-        let mut parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
-        parsed.remove(selected);
-        fs::write(DB_PATH, &serde_json::to_vec(&parsed)?)?;
-        pet_list_state.select(Some(selected - 1));
-    }
-    Ok(())
-}
+// fn remove_pet_at_index(pet_list_state: &mut ListState) -> Result<(), Error> {
+//     if let Some(selected) = pet_list_state.selected() {
+//         let db_content = fs::read_to_string(DB_PATH)?;
+//         let mut parsed: Vec<Pet> = serde_json::from_str(&db_content)?;
+//         parsed.remove(selected);
+//         fs::write(DB_PATH, &serde_json::to_vec(&parsed)?)?;
+//         pet_list_state.select(Some(selected - 1));
+//     }
+//     Ok(())
+// }

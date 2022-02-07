@@ -5,8 +5,14 @@
 org: lfedge
 image: eve-storage-init
 network: yes
+net: host
+pid: host
 config:
   binds:
+    - /media/root-ro:/root:rshared,rbind
+    - /media/boot:/bits:rshared,rbind
+    - /lib/modules:/lib/modules:rshared,rbind,rw
+ # from storage-init 
     - /:/hostfs
     - /lib/modules:/lib/modules
     - /dev:/dev
