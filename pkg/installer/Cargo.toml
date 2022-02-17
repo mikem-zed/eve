@@ -1,0 +1,20 @@
+[package]
+name = "installer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossterm = { version = "0.23.0", features = [ "serde" ] }
+serde = {version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+rand = { version = "0.8.4", default-features = true, features = ["std_rng"] }
+tui = { version = "0.17.0", default-features = false, features = ['crossterm', 'serde'] }
+thiserror = "1.0"
+walkdir ="2.3.2"
+anyhow = "1.0.53"
+libc = "0.2.118"
+clap="3.1.0"
+quote="1.0.15"

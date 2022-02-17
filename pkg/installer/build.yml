@@ -1,0 +1,19 @@
+# Copyright (c) 2022 Zededa, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+org: lfedge
+image: eve-installer
+network: yes
+config:
+  pid: host
+  binds:
+    - /:/hostfs
+    - /lib/modules:/lib/modules
+    - /dev:/dev
+    - /run:/run
+    - /var:/var
+    - /persist:/persist:rshared,rbind
+    - /config:/config:rshared,rbind
+    - /containers:/containers:rshared,rbind
+  capabilities:
+    - all

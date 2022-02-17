@@ -2,8 +2,8 @@
     "cgroups": [],
     "mounts": [
         {
-            "destination": "/containers/onboot/003-installer/rootfs",
-            "source": "/containers/onboot/003-installer/rootfs",
+            "destination": "/containers/onboot/005-installer/rootfs",
+            "source": "/containers/onboot/005-installer/rootfs",
             "options": [
                 "bind"
             ]
