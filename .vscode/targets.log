@@ -1,0 +1,1888 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Mon Feb  7 19:01:22 2022
+
+# Variables
+
+# makefile (from 'Makefile', line 127)
+DEVICETREE_DTB_amd64 = 
+# makefile (from 'Makefile', line 178)
+QEMU_OPTS_BIOS_y = -drive if=pflash,format=raw,unit=0,readonly,file=$(CURRENT_FIRMWARE_DIR)/OVMF_CODE.fd -drive if=pflash,format=raw,unit=1,file=$(CURRENT_FIRMWARE_DIR)/OVMF_VARS.fd
+# environment
+GDK_BACKEND = x11
+# makefile (from 'Makefile', line 103)
+INSTALLER_FIRMWARE_DIR = $(INSTALLER)/firmware
+# environment
+LC_ALL = C
+# environment
+GNOME_SHELL_SESSION_MODE = ubuntu
+# environment
+SSH_AGENT_LAUNCHER = gnome-keyring
+# makefile (from 'Makefile', line 91)
+DIST = $(CURDIR)/dist/$(ZARCH)
+# makefile (from 'Makefile', line 45)
+BUILD_VM_SRC_amd64 = https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+# environment
+OSH = /home/rucoder/.oh-my-bash
+ 
+# makefile (from 'Makefile', line 66)
+REPO_DIRTY_TAG = $(if $(findstring -dirty,$(REPO_SHA)),-$(shell date -u +"%Y-%m-%d.%H.%M"))
+# makefile (from 'Makefile', line 129)
+DEVICETREE_DTB = $(DEVICETREE_DTB_$(ZARCH))
+# makefile (from 'Makefile', line 132)
+PART_SPEC = efi conf imga
+# makefile (from 'Makefile', line 120)
+INSTALLER_IMG = $(INSTALLER)/installer.img
+# makefile (from 'Makefile', line 53)
+GID = $(shell id -g)
+# environment
+GJS_DEBUG_OUTPUT = stderr
+# makefile (from 'Makefile', line 108)
+RUNME = $(BUILD_DIR)/runme.sh
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-4ab410e5-6cdd-40ae-89ab-a73e4c1eade7.sock
+# makefile (from 'Makefile', line 196)
+GOOS = linux
+# environment
+LC_NAME = de_DE.UTF-8
+# makefile (from 'Makefile', line 104)
+CURRENT_FIRMWARE_DIR = $(CURRENT_INSTALLER)/firmware
+# environment
+LC_NUMERIC = de_DE.UTF-8
+# makefile (from 'Makefile', line 11)
+GOMODULE = $(PKGBASE)/pkg/pillar
+# environment
+VSCODE_CWD = /home/rucoder
+# makefile (from 'Makefile', line 10)
+PKGBASE = github.com/lf-edge/eve
+# makefile (from 'Makefile', line 51)
+GROUP = $(shell id -g -n)
+# makefile (from 'Makefile', line 172)
+QEMU_OPTS_NET2_FIRST_IP = 192.168.2.10
+# environment
+WINDOWPATH = 2
+# makefile (from 'Makefile', line 241)
+FORCE_BUILD = --force
+# makefile (from 'Makefile', line 92)
+DOCKER_DIST = /eve/dist/$(ZARCH)
+# makefile (from 'Makefile', line 106)
+UBOOT_IMG = $(INSTALLER_FIRMWARE_DIR)/boot
+# makefile (from 'Makefile', line 184)
+QEMU_OPTS_riscv64 = -kernel $(UBOOT_IMG)/u-boot.bin -device virtio-blk,drive=uefi-disk
+# makefile (from 'Makefile', line 155)
+QEMU_SYSTEM_arm64 = qemu-system-aarch64
+# environment
+LC_ADDRESS = de_DE.UTF-8
+# environment
+LIBVIRT_DEFAULT_URI = qemu:///system
+# default
+MAKE_COMMAND := make
+# environment
+QT_ACCESSIBILITY = 1
+# makefile (from 'Makefile', line 160)
+QEMU_ACCEL_Y_Darwin_amd64 = -machine q35,accel=hvf,usb=off -cpu kvm64,kvmclock=off
+# makefile (from 'Makefile', line 180)
+QEMU_OPTS_BIOS = $(QEMU_OPTS_BIOS_$(PFLASH))
+# environment
+GOPATH = /home/rucoder/go
+# makefile (from 'Makefile', line 191)
+QEMU_OPTS_CONF_PART = $(shell [ -d "$(CONF_PART)" ] && echo '-drive file=fat:rw:$(CONF_PART),format=raw')
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# makefile (from 'Makefile', line 22)
+PROTO_LANGS = go python
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+PWD = /home/rucoder/zd/eve
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# makefile (from 'Makefile', line 72)
+APIDIRS = $(shell find ./api/* -maxdepth 1 -type d -exec basename {} \;)
+# environment
+LSCOLORS = Gxfxcxdxdxegedabagacad
+# environment
+XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+VSCODE_LOG_STACK = false
+# automatic
+%F = $(notdir $%)
+# makefile (from 'Makefile', line 182)
+QEMU_OPTS_amd64 = -smbios type=1,serial=31415926
+# environment
+VSCODE_CODE_CACHE_PATH = /home/rucoder/.config/Code/CachedData/5554b12acf27056905806867f251c859323ff7e9
+# environment
+LANG = C
+# environment
+XAUTHORITY = /run/user/1000/gdm/Xauthority
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
+# makefile (from 'Makefile', line 169)
+QEMU_OPTS_NET1 = 192.168.1.0/24
+# makefile
+MAKEFLAGS = pqrR
+# makefile (from 'Makefile', line 217)
+SET_X := :
+# makefile (from 'Makefile', line 198)
+GOBUILDER = eve-build-$(shell echo $(USER) | tr A-Z a-z)
+# makefile (from 'Makefile', line 115)
+ROOTFS_FULL_NAME = $(INSTALLER)/rootfs-$(ROOTFS_VERSION)
+# makefile (from 'Makefile', line 111)
+BUILD_VM = $(DIST)/build-vm.qcow2
+# makefile
+CURDIR := /home/rucoder/zd/eve
+# environment
+VSCODE_PIPE_LOGGING = true
+# makefile (from 'Makefile', line 550)
+EVE_ARTIFACTS = $(BIOS_IMG) $(EFI_PART) $(CONFIG_IMG) $(PERSIST_IMG) $(INITRD_IMG) $(INSTALLER_IMG) $(ROOTFS_IMG) fullname-rootfs $(BOOT_PART)
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+LESSOPEN = | /usr/bin/lesspipe %s
+# makefile (from 'Makefile', line 137)
+PARALLELS_UUID = {5fbaabe3-6958-40ff-92a7-860e329aab41}
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# default
+.SHELLFLAGS := -c
+# makefile (from 'Makefile', line 46)
+BUILD_VM_SRC = $(BUILD_VM_SRC_$(ZARCH))
+# environment
+XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# makefile (from 'Makefile', line 20)
+EVE_SNAPSHOT_VERSION = 0.0.0
+# makefile (from 'Makefile', line 128)
+DEVICETREE_DTB_arm64 = $(DIST)/dtb/eve.dtb
+# environment
+VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=a3e26959-03be-446b-80b6-42643c29aa41&iid=a3e26959-03be-446b-80b6-42643c29aa41&sid=a3e26959-03be-446b-80b6-42643c29aa41","uploadToServer":true}
+# environment
+XDG_SESSION_DESKTOP = ubuntu
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST := Makefile
+# automatic
+@F = $(notdir $@)
+# makefile (from 'Makefile', line 224)
+DOCKER_UNPACK = _() { C=`docker create $$1 fake` ; shift ; docker export $$C | tar -xf - "$$@" ; docker rm $$C ; } ; _
+# makefile (from 'Makefile', line 105)
+BIOS_IMG = $(INSTALLER_FIRMWARE_DIR)/OVMF.fd $(INSTALLER_FIRMWARE_DIR)/OVMF_CODE.fd $(INSTALLER_FIRMWARE_DIR)/OVMF_VARS.fd
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+VSCODE_PID = 1156847
+# environment
+HISTIGNORE = &:[ ]*:exit:ls:bg:fg:history:clear
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# makefile (from 'Makefile', line 74)
+HOSTARCH := amd64
+# makefile (from 'Makefile', line 42)
+CONF_DIR = conf
+# makefile (from 'Makefile', line 216)
+QUIET := @
+# makefile (from 'Makefile', line 158)
+QEMU_SYSTEM = $(QEMU_SYSTEM_$(ZARCH))
+# makefile (from 'Makefile', line 80)
+CROSS = 
+# environment
+SESSION_MANAGER = local/kyrogaz:@/tmp/.ICE-unix/2336,unix/kyrogaz:/tmp/.ICE-unix/2336
+# automatic
+*F = $(notdir $*)
+# makefile (from 'Makefile', line 124)
+EFI_PART = $(INSTALLER)/EFI
+# makefile (from 'Makefile', line 174)
+QEMU_MEMORY := 4096
+# makefile (from 'Makefile', line 95)
+LIVE_IMG = $(BUILD_DIR)/live.$(IMG_FORMAT)
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# makefile (from 'Makefile', line 119)
+INITRD_IMG = $(INSTALLER)/initrd.img
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# makefile (from 'Makefile', line 150)
+CLOUD_PROJECT = -project lf-edge-eve
+# makefile (from 'Makefile', line 96)
+TARGET_IMG = $(BUILD_DIR)/target.img
+# makefile (from 'Makefile', line 161)
+QEMU_ACCEL_Y_Linux_amd64 = -machine q35,accel=kvm,usb=off,dump-guest-core=off -cpu host,invtsc=on,kvmclock=off -machine kernel-irqchip=split -device intel-iommu,intremap=on,caching-mode=on,aw-bits=48
+# makefile (from 'Makefile', line 94)
+LIVE = $(BUILD_DIR)/live
+# makefile (from 'Makefile', line 264)
+PKGS_riscv64 = pkg/alpine pkg/ipxe pkg/mkconf pkg/mkimage-iso-efi pkg/grub pkg/mkimage-raw-efi pkg/uefi pkg/u-boot pkg/grub pkg/new-kernel pkg/debug pkg/dom0-ztools pkg/gpt-tools pkg/storage-init
+# makefile (from 'Makefile', line 151)
+CLOUD_BUCKET = -bucket eve-live
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# environment
+BREAKPAD_DUMP_LOCATION = /home/rucoder/.config/Code/exthost Crash Reports
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# makefile (from 'Makefile', line 118)
+CONFIG_IMG = $(INSTALLER)/config.img
+# environment
+GNOME_DESKTOP_SESSION_ID = this-is-deprecated
+# makefile
+SHELL = /bin/sh
+# makefile (from 'Makefile', line 63)
+REPO_BRANCH = $(shell git rev-parse --abbrev-ref HEAD | tr / _)
+# makefile (from 'Makefile', line 144)
+VB_CPUS = 2 
+# default
+MAKECMDGOALS := all
+# environment
+XMODIFIERS = @im=ibus
+# makefile (from 'Makefile', line 32)
+INSTALLER_IMG_FORMAT = raw
+# makefile (from 'Makefile', line 44)
+BUILD_VM_SRC_arm64 = https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64.img
+# makefile (from 'Makefile', line 52)
+UID = $(shell id -u)
+# makefile (from 'Makefile', line 70)
+ROOTFS_VERSION := 0.0.0-mikem_rust-installer-44a8cbed
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+# environment
+SHLVL = 0
+# makefile (from 'Makefile', line 145)
+VB_MEMORY = 2048 
+# makefile (from 'Makefile', line 177)
+PFLASH = $(PFLASH_$(ZARCH))
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# makefile (from 'Makefile', line 14)
+PATH := /home/rucoder/zd/eve/build-tools/bin:/home/rucoder/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+# makefile (from 'Makefile', line 192)
+QEMU_OPTS = $(QEMU_OPTS_COMMON) $(QEMU_ACCEL) $(QEMU_OPTS_$(ZARCH)) $(QEMU_OPTS_CONF_PART)
+# default
+MAKEFILES := 
+# environment
+LC_MONETARY = de_DE.UTF-8
+# automatic
+^F = $(notdir $^)
+# makefile (from 'Makefile', line 235)
+LINUXKIT = $(BUILDTOOLS_BIN)/linuxkit
+# makefile (from 'Makefile', line 26)
+MEDIA_SIZE = 8192
+# environment
+LC_TIME = de_DE.UTF-8
+# makefile (from 'Makefile', line 64)
+REPO_SHA = $(shell git describe --match '$$^' --abbrev=8 --always --dirty)
+# environment
+INVOCATION_ID = a42eb927cb27426b9c61621838871cc4
+# makefile (from 'Makefile', line 122)
+KERNEL_IMG = $(INSTALLER)/kernel
+# environment
+VSCODE_LOG_NATIVE = false
+# environment
+USERNAME = rucoder
+# makefile (from 'Makefile', line 163)
+QEMU_ACCEL_Y_Linux_arm64 = -machine virt,accel=kvm,usb=off,dump-guest-core=off -cpu host
+# makefile (from 'Makefile', line 12)
+GOTREE = $(CURDIR)/pkg/pillar
+# environment
+LC_TELEPHONE = de_DE.UTF-8
+# environment
+LESSCLOSE = /usr/bin/lesspipe %s %s
+# automatic
+?F = $(notdir $?)
+# makefile (from 'Makefile', line 9)
+GOVER = 1.15.3
+# makefile (from 'Makefile', line 36)
+SSH_PROXY = -L6000:localhost:6000
+# environment
+XDG_CURRENT_DESKTOP = Unity
+# makefile (from 'Makefile', line 267)
+ 
+PKGS = $(PKGS_$(ZARCH))
+# makefile (from 'Makefile', line 48)
+UNAME_S := Linux
+# makefile (from 'Makefile', line 138)
+PARALLELS_VM_NAME = EVE_Live
+# environment
+LS_COLORS = 
+# automatic
++F = $(notdir $+)
+# environment
+LESS = -R
+# environment
+DESKTOP_SESSION = ubuntu
+# makefile (from 'Makefile', line 152)
+CLOUD_INSTANCE = -zone us-west1-a -machine n1-standard-1
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
+# makefile (from 'Makefile', line 164)
+QEMU_ACCEL__Linux_arm64 = -machine virt,virtualization=true -cpu cortex-a57
+# 'override' directive
+GNUMAKEFLAGS := 
+# makefile (from 'Makefile', line 234)
+PARSE_PKGS = $(if $(strip $(EVE_HASH)),EVE_HASH=)$(EVE_HASH) DOCKER_ARCH_TAG=$(DOCKER_ARCH_TAG) ./tools/parse-pkgs.sh
+# environment
+LOGNAME = rucoder
+# environment
+define COMP_WORDBREAKS
+ 	
+"'><=;|&(
+endef
+# makefile (from 'Makefile', line 99)
+CURRENT_DIR = $(DIST)/current
+# makefile (from 'Makefile', line 166)
+QEMU_ACCEL__Linux_riscv64 = -machine virt -cpu rv64
+# environment
+GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
+# makefile (from 'Makefile', line 167)
+QEMU_ACCEL := -machine q35 -cpu SandyBridge
+# makefile (from 'Makefile', line 121)
+PERSIST_IMG = $(INSTALLER)/persist.img
+# makefile (from 'Makefile', line 116)
+ROOTFS_COMPLETE = $(ROOTFS_FULL_NAME)-%-$(ZARCH).$(ROOTFS_FORMAT)
+# makefile (from 'Makefile', line 140)
+PARALLELS_MEMORY = 2048 
+# makefile (from 'Makefile', line 225)
+DOCKER_GO = _() { $(SET_X); mkdir -p $(CURDIR)/.go/src/$${3:-dummy} ; mkdir -p $(CURDIR)/.go/bin ; docker_go_line="docker run $$DOCKER_GO_ARGS -i --rm -u $(USER) -w /go/src/$${3:-dummy} -v $(CURDIR)/.go:/go -v $$2:/go/src/$${3:-dummy} -v $${4:-$(CURDIR)/.go/bin}:/go/bin -v $(CURDIR)/:/eve -v $${HOME}:/home/$(USER) -e GOOS -e GOARCH -e CGO_ENABLED -e BUILD=local $(GOBUILDER) bash --noprofile --norc -c" ; verbose=$(V) ; verbose=$${verbose:-0} ; [ $$verbose -ge 1 ] && echo $$docker_go_line "\"$$1\""; $$docker_go_line "$$1" ; } ; _
+# makefile
+.DEFAULT_GOAL := all
+# environment
+SYSTEMD_EXEC_PID = 2355
+# makefile (from 'Makefile', line 183)
+QEMU_OPTS_arm64 = -smbios type=1,serial=31415926 -drive file=fat:rw:$(dir $(DEVICETREE_DTB)),label=QEMU_DTB,format=vvfat
+# environment
+DISPLAY = :1
+# makefile (from 'Makefile', line 50)
+USER = $(shell id -u -n)
+# environment
+GTK_MODULES = gail:atk-bridge
+# default
+MAKE_VERSION := 4.3
+# makefile (from 'Makefile', line 67)
+EVE_TREE_TAG = $(shell git describe --abbrev=8 --always --dirty)
+# makefile (from 'Makefile', line 125)
+BOOT_PART = $(INSTALLER)/boot
+# makefile (from 'Makefile', line 143)
+VB_VM_NAME = EVE_Live
+# 'override' directive
+.SHELLSTATUS := 0
+# makefile (from 'Makefile', line 28)
+IMG_FORMAT = qcow2
+# makefile (from 'Makefile', line 13)
+BUILDTOOLS_BIN = $(CURDIR)/build-tools/bin
+# makefile (from 'Makefile', line 139)
+PARALLELS_CPUS = 2 
+# makefile (from 'Makefile', line 215)
+DASH_V := 
+# makefile (from 'Makefile', line 109)
+BUILD_YML = $(BUILD_DIR)/build.yml
+# makefile (from 'Makefile', line 176)
+PFLASH_amd64 = y
+# makefile (from 'Makefile', line 117)
+ROOTFS_IMG = $(ROOTFS).img
+# environment
+MANAGERPID = 2118
+# makefile (from 'Makefile', line 34)
+SSH_PORT = 2222
+# makefile (from 'Makefile', line 77)
+ZARCH = $(HOSTARCH)
+# makefile (from 'Makefile', line 197)
+CGO_ENABLED = 1
+# environment
+LC_MEASUREMENT = de_DE.UTF-8
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1156847
+# environment
+PAGER = less
+# makefile (from 'Makefile', line 16)
+GOARCH := 
+# makefile (from 'Makefile', line 88)
+FULL_VERSION := 0.0.0-mikem_rust-installer-44a8cbed-kvm-amd64
+# environment
+_ = /usr/share/code/code
+# environment
+LC_PAPER = de_DE.UTF-8
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
+# makefile (from 'Makefile', line 38)
+SSH_KEY = $(CONF_DIR)/ssh.key
+# environment
+LC_CTYPE = en_US.UTF-8
+# makefile (from 'Makefile', line 100)
+CURRENT_IMG = $(CURRENT_DIR)/live.$(IMG_FORMAT)
+# environment
+JOURNAL_STREAM = 8:49224
+# environment
+GOMODCACHE = /home/rucoder/go/pkg/mod
+# makefile (from 'Makefile', line 123)
+IPXE_IMG = $(INSTALLER)/ipxe.efi
+# makefile (from 'Makefile', line 101)
+CURRENT_INSTALLER = $(CURRENT_DIR)/installer
+# environment
+XDG_SESSION_CLASS = user
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
+# makefile (from 'Makefile', line 240)
+RESCAN_DEPS = FORCE
+# makefile (from 'Makefile', line 86)
+DOCKER_ARCH_TAG = $(ZARCH)
+# makefile (from 'Makefile', line 98)
+BUILD_DIR = $(DIST)/$(ROOTFS_VERSION)
+# makefile (from 'Makefile', line 171)
+QEMU_OPTS_NET2 = 192.168.2.0/24
+# environment
+HOME = /home/rucoder
+# environment
+QT_IM_MODULE = ibus
+# makefile (from 'Makefile', line 131)
+CONF_FILES = $(shell ls -d $(CONF_DIR)/*)
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-0871d4e3-1.64.0-main.sock
+# makefile (from 'Makefile', line 97)
+INSTALLER = $(BUILD_DIR)/installer
+# makefile (from 'Makefile', line 8)
+HV_DEFAULT = kvm
+# makefile (from 'Makefile', line 149)
+CLOUD_IMG_NAME = $(subst .,-,live-$(FULL_VERSION))
+# environment
+IM_CONFIG_PHASE = 1
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# default
+SUFFIXES := 
+# makefile (from 'Makefile', line 263)
+PKGS_amd64 = $(shell ls -d pkg/* | grep -Ev "eve|test-microsvcs")
+# makefile (from 'Makefile', line 239)
+LINUXKIT_PKG_TARGET = build
+# makefile (from 'Makefile', line 185)
+QEMU_OPTS_COMMON = -m $(QEMU_MEMORY) -smp 4 -display none $(QEMU_OPTS_BIOS) -serial mon:stdio -global ICH9-LPC.noreboot=false -watchdog-action reset -rtc base=utc,clock=rt -netdev user,id=eth0,net=$(QEMU_OPTS_NET1),dhcpstart=$(QEMU_OPTS_NET1_FIRST_IP),hostfwd=tcp::$(SSH_PORT)-:22$(QEMU_TFTP_OPTS) -device virtio-net-pci,netdev=eth0,romfile="" -netdev user,id=eth1,net=$(QEMU_OPTS_NET2),dhcpstart=$(QEMU_OPTS_NET2_FIRST_IP) -device virtio-net-pci,netdev=eth1,romfile=""
+# makefile (from 'Makefile', line 40)
+ACCEL = 
+# makefile (from 'Makefile', line 170)
+QEMU_OPTS_NET1_FIRST_IP = 192.168.1.10
+# environment
+MYSQL_PS1 = (\u@\h) [\d]> 
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# makefile (from 'Makefile', line 112)
+BUILD_VM_CLOUD_INIT = $(DIST)/build-vm-ci.qcow2
+# makefile (from 'Makefile', line 24)
+HV = $(HV_DEFAULT)
+# makefile (from 'Makefile', line 157)
+QEMU_SYSTEM_riscv64 = qemu-system-riscv64
+# makefile (from 'Makefile', line 65)
+REPO_TAG = $(shell git describe --always | grep -E '[0-9]*\.[0-9]*\.[0-9]*' || echo snapshot)
+# makefile (from 'Makefile', line 236)
+LINUXKIT_VERSION = 80c4edd5c54dc05fbeae932440372990fce39bd6
+# makefile (from 'Makefile', line 237)
+LINUXKIT_SOURCE = https://github.com/linuxkit/linuxkit.git
+# makefile (from 'Makefile', line 165)
+QEMU_ACCEL__Linux_amd64 = -machine q35 -cpu SandyBridge
+# makefile (from 'Makefile', line 30)
+ROOTFS_FORMAT = squash
+# makefile (from 'Makefile', line 238)
+LINUXKIT_OPTS = --disable-content-trust $(if $(strip $(EVE_HASH)),--hash) $(EVE_HASH) $(if $(strip $(EVE_REL)),--release) $(EVE_REL) $(FORCE_BUILD)
+# environment
+XDG_MENU_PREFIX = gnome-
+# makefile (from 'Makefile', line 179)
+QEMU_OPTS_BIOS_ = -bios $(CURRENT_FIRMWARE_DIR)/OVMF.fd
+# makefile (from 'Makefile', line 156)
+QEMU_SYSTEM_amd64 = qemu-system-x86_64
+# makefile (from 'Makefile', line 114)
+ROOTFS = $(INSTALLER)/rootfs
+# environment
+GDMSESSION = ubuntu
+# environment
+LC_IDENTIFICATION = de_DE.UTF-8
+# variable set hash-table stats:
+# Load=253/1024=25%, Rehash=0, Collisions=56/1785=3%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 66309, inode 6693166): 36 files, no impossibilities.
+# /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed (device 66309, inode 6824024): No files, no impossibilities so far.
+
+# 36 files, no impossibilities in 2 directories.
+
+# Implicit Rules
+
+live-%: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.%
+#  recipe to execute (from 'Makefile', line 472):
+	 $(QUIET): "$@: Succeeded, LIVE=$(LIVE)"
+
+installer-%: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer.% current
+#  recipe to execute (from 'Makefile', line 474):
+	 @echo "$@: Succeeded, INSTALLER_IMG=$<"
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-%.img: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img
+#  recipe to execute (from 'Makefile', line 492):
+	@rm -f $@ && ln -s $(notdir $<) $@
+	$(QUIET): $@: Succeeded
+
+pkg/%: eve-% FORCE
+#  recipe to execute (from 'Makefile', line 545):
+	$(QUIET): $@: Succeeded
+
+proto-api-%: eve-build-rucoder
+#  recipe to execute (from 'Makefile', line 578):
+	rm -rf api/$*/*/; mkdir -p api/$* # building $@
+	@$(DOCKER_GO) "protoc -I./proto --$(*)_out=$(PROTOC_OUT_OPTS)./$* \
+		proto/*/*.proto" $(CURDIR)/api api
+
+%.gcp: %.raw | /home/rucoder/zd/eve/dist/amd64
+#  recipe to execute (from 'Makefile', line 644):
+ 
+	cp $< $@
+	dd of=$@ bs=1 seek=$$(($(MEDIA_SIZE) * 1024 * 1024)) count=0
+	rm -f $(dir $@)/disk.raw ; ln -s $(notdir $@) $(dir $@)/disk.raw
+	$(DOCKER_GO) "tar --mode=644 --owner=root --group=root -S -h -czvf $(notdir $*).img.tar.gz disk.raw" $(DIST) dist
+	rm -f $(dir $@)/disk.raw
+
+%.qcow2: %.raw | /home/rucoder/zd/eve/dist/amd64
+#  recipe to execute (from 'Makefile', line 651):
+	qemu-img convert -c -f raw -O qcow2 $< $@
+	qemu-img resize $@ ${MEDIA_SIZE}M
+	$(QUIET): $@: Succeeded
+
+%.yml: %.yml.in build-tools FORCE
+#  recipe to execute (from 'Makefile', line 656):
+	$(QUIET)$(PARSE_PKGS) $< > $@
+	$(QUIET): $@: Succeeded
+
+%/Dockerfile: %/Dockerfile.in build-tools FORCE
+#  recipe to execute (from 'Makefile', line 660):
+	$(QUIET)$(PARSE_PKGS) $< > $@
+	$(QUIET): $@: Succeeded
+
+eve-%: pkg/%/Dockerfile build-tools FORCE
+#  recipe to execute (from 'Makefile', line 664):
+	$(QUIET): "$@: Begin: LINUXKIT_PKG_TARGET=$(LINUXKIT_PKG_TARGET)"
+	$(QUIET)$(LINUXKIT) $(DASH_V) pkg $(LINUXKIT_PKG_TARGET) $(LINUXKIT_OPTS) pkg/$*
+	$(QUIET): "$@: Succeeded (intermediate for pkg/%)"
+
+images/rootfs-%.yml.in: images/rootfs.yml.in FORCE
+#  recipe to execute (from 'Makefile', line 669):
+	@if [ -e $@.patch ]; then patch -p0 -o $@.sed < $@.patch ;else cp $< $@.sed ;fi
+	$(QUIET)sed -e 's#EVE_VERSION#$(ROOTFS_VERSION)-$*-$(ZARCH)#' < $@.sed > $@ || rm $@ $@.sed
+	@rm $@.sed
+	$(QUIET): $@: Succeeded
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-%-amd64.squash: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img
+#  recipe to execute (from 'Makefile', line 678):
+	@rm -f $@ && ln -s $(notdir $<) $@
+	$(QUIET): $@: Succeeded
+
+%-show-tag:
+#  recipe to execute (from 'Makefile', line 682):
+	@$(LINUXKIT) pkg show-tag pkg/$*
+
+%Gopkg.lock: %Gopkg.toml | eve-build-rucoder
+#  recipe to execute (from 'Makefile', line 685):
+	@$(DOCKER_GO) "dep ensure -update $(GODEP_NAME)" $(dir $@)
+	@echo Done updating $@
+
+# 14 implicit rules, 0 (0.0%) terminal.
+# Files
+
+conf/ssh.key:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 477):
+	rm -f $@*
+	ssh-keygen -P "" -f $@
+	mv $@.pub $(CONF_DIR)/authorized_keys
+
+FORCE:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+# Not a target:
+conf/authorized_keys:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/kernel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+rootfs-%:
+#  Precious file (prerequisite of .PRECIOUS).
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 346)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd: PKG = uefi
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/acrn:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 342)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img: PKG = mkimage-raw-efi
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+docker-image-clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 692):
+	docker rmi -f $(shell ./tools/oldimages.sh)
+
+proto-api-%:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 451):
+	mkdir -p $@
+
+# Not a target:
+pkg/k3s:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/new-kernel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+run-proxy:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 398):
+	ssh $(SSH_PROXY) -N -i $(SSH_KEY) -p $(SSH_PORT) -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null root@localhost &
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer.raw: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/boot /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 508):
+	./tools/makeflash.sh -C 350 $| $@ "conf_win installer inventory_win"
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/mkimage-iso-efi:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/runme.sh:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 548):
+	cp pkg/eve/$(@F) $@
+
+# makefile (from 'Makefile', line 345)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/ipxe.efi: PKG = ipxe
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/ipxe.efi: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/gpt-tools:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 346)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd: PKG = uefi
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+rootfs: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img current
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+run-installer-iso: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 361):
+	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
+	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) -cdrom $(INSTALLER).iso -boot d $(QEMU_OPTS)
+
+installer-img: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+proto: eve-build-rucoder api/go api/python proto-diagram
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 570):
+	@echo Done building protobuf, you may want to vendor it into pillar by running proto-vendor
+
+current: /home/rucoder/zd/eve/dist/amd64/current
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+live: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.qcow2 /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd current
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 471):
+	 $(QUIET): "$@: Succeeded, LIVE_IMG=$(LIVE_IMG)"
+
+# Not a target:
+images/rootfs-kvm.yml:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/mkrootfs-squash:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.PRECIOUS: rootfs-% /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-%.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-%-amd64.squash
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+ 
+live-gcp-upload: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.img.tar.gz
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 442):
+	if gcloud compute images list -$(CLOUD_PROJECT) --filter="name=$(CLOUD_IMG_NAME)" 2>&1 | grep -q 'Listed 0 items'; then \
+	    $^ push gcp -nested-virt -img-name $(CLOUD_IMG_NAME) $(CLOUD_PROJECT) $(CLOUD_BUCKET) $|                          ;\
+		echo "Uploaded $(CLOUD_IMG_NAME)"; \
+	else \
+		echo "Image $(CLOUD_IMG_NAME) already exists in GCP" ;\
+	fi
+
+# makefile (from 'Makefile', line 346)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd: PKG = uefi
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+run-live-vb:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 404):
+	@[ -f "$(LIVE).vdi" ] || { echo "Please run: make live-vdi"; exit 1; }
+	VBoxManage list vms | grep $(VB_VM_NAME) >/dev/null &&  VBoxManage controlvm $(VB_VM_NAME) acpipowerbutton & sleep 10 & VBoxManage unregistervm $(VB_VM_NAME) --delete || echo "No VMs with $(VB_VM_NAME) name"
+	VBoxManage createvm --name $(VB_VM_NAME) --register --basefolder $(DIST)/
+	VBoxManage modifyvm $(VB_VM_NAME) --cpus $(VB_CPUS) --memory $(VB_MEMORY) --vram 16 --nested-hw-virt on --ostype Ubuntu_64  --mouse usbtablet --graphicscontroller vmsvga --boot1 disk --boot2 net
+	VBoxManage storagectl $(VB_VM_NAME) --name "SATA Controller" --add SATA --controller IntelAhci --bootable on --hostiocache on
+	VBoxManage storageattach $(VB_VM_NAME)  --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium $(LIVE).vdi
+	VBoxManage modifyvm $(VB_VM_NAME) --nic1 natnetwork --nat-network1 natnet1 --cableconnected1 on --natpf1 ssh,tcp,,$(SSH_PORT),,22
+	VBoxManage modifyvm $(VB_VM_NAME) --nic2 natnetwork --nat-network2 natnet2 --cableconnected2 on
+	VBoxManage startvm  $(VB_VM_NAME)
+
+run-target: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 379):
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT)
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-02-07 12:08:40.539962692
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+pkg/ipxe:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.vdi: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.raw
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 520):
+	qemu-img resize -f raw $< ${MEDIA_SIZE}M
+	qemu-img convert -O vdi $< $@
+
+version:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 276):
+	@echo $(ROOTFS_VERSION)
+
+# makefile (from 'Makefile', line 368)
+run-installer-net: QEMU_TFTP_OPTS = ,tftp=$(dir $(IPXE_IMG)),bootfile=$(notdir $(IPXE_IMG))
+run-installer-net: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/ipxe.efi
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 370):
+	tar -C $(INSTALLER) -xvf $(INSTALLER).net || :
+	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
+	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) $(QEMU_OPTS)
+
+# Not a target:
+pkg/rngd:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-%-amd64.squash:
+#  Precious file (prerequisite of .PRECIOUS).
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+installer: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+# Not a target:
+pkg/mkconf:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 304):
+	rm -rf $(DIST) images/*.yml
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img: images/rootfs-kvm.yml | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 496):
+	$(QUIET): $@: Begin
+	./tools/makerootfs.sh $< $@ $(ROOTFS_FORMAT) $(ZARCH)
+	@echo "size of $@ is $$(wc -c < "$@")B"
+	@[ $$(wc -c < "$@") -gt $$(( 250 * 1024 * 1024 )) ] && \
+	        echo "ERROR: size of $@ is greater than 250MB (bigger than allocated partition)" && exit 1 || :
+	$(QUIET): $@: Succeeded
+
+build-vm: /home/rucoder/zd/eve/dist/amd64/build-vm.qcow2
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/wlan:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+linuxkit: /home/rucoder/zd/eve/build-tools/bin/linuxkit
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+# Not a target:
+conf/onboard.key.pem:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.qcow2:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/current: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 281):
+	@rm -f $@ && ln -s $(BUILD_DIR) $@
+
+run-live-gcp: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.img.tar.gz
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 436):
+	if gcloud compute images list -$(CLOUD_PROJECT) --filter="name=$(CLOUD_IMG_NAME)" 2>&1 | grep -q 'Listed 0 items'; then \
+	    $^ push gcp -nested-virt -img-name $(CLOUD_IMG_NAME) $(CLOUD_PROJECT) $(CLOUD_BUCKET) $|                          ;\
+	fi
+	$^ run gcp $(CLOUD_PROJECT) $(CLOUD_INSTANCE) $(CLOUD_IMG_NAME)
+
+# Not a target:
+pkg/u-boot:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 347)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/boot: PKG = u-boot
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/boot: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img: | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 486):
+	$(if $(findstring zfs,$(HV)),echo 'eve<3zfs' > $@)
+	# 1M of zeroes should be enough to trigger filesystem wipe on first boot
+	dd if=/dev/zero bs=1048576 count=1 >> $@
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/debug:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+eve-pillar:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 340)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI: PKG = grub
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+conf/v2tlsbaseroot-certificates.pem:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.raw: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/boot /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 504):
+	./tools/makeflash.sh -C 350 $| $@ $(PART_SPEC)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/xen:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+pkg/xen-tools: pkg/uefi eve-xen-tools
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 538):
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/dnsmasq:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.parallels: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.raw
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 524):
+	rm -rf $@; mkdir $@
+	qemu-img resize -f raw $< ${MEDIA_SIZE}M
+	qemu-img convert -O parallels $< $@/live.0.$(PARALLELS_UUID).hds
+	qemu-img info -f parallels --output json $(LIVE).parallels/live.0.$(PARALLELS_UUID).hds | jq --raw-output '.["virtual-size"]' | xargs ./tools/parallels_disk.sh $(LIVE) $(PARALLELS_UUID)
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 451):
+	mkdir -p $@
+
+# Not a target:
+conf/onboard.cert.pem:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/strongswan:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+run-build-vm: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 401):
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive format=qcow2,file=$(BUILD_VM)
+
+# Not a target:
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-kvm-amd64.squash:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+api/python: proto-api-python
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+proto-vendor:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 562):
+	@$(DOCKER_GO) "cd pkg/pillar ; go mod vendor" $(CURDIR) proto
+
+# Not a target:
+eve-qrexec-dom0:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+config: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 468):
+	 $(QUIET): "$@: Succeeded, CONFIG_IMG=$(CONFIG_IMG)"
+
+kernel: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/kernel
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+ssh-key: conf/ssh.key
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+docker-old-images:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 689):
+	./tools/oldimages.sh
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+pkg/pillar: pkg/dnsmasq pkg/strongswan pkg/gpt-tools eve-pillar
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 536):
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+build-tools/src/scripts/cloud-init.in:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer.net: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/kernel | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 516):
+	./tools/makenet.sh $| $@
+	$(QUIET): $@: Succeeded
+
+all: help
+#  Phony target (prerequisite of .PHONY).
+#  Command line target.
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/3=0%
+#  recipe to execute (from 'Makefile', line 272):
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/mkimage-raw-efi:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-%.img:
+#  Precious file (prerequisite of .PRECIOUS).
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 572)
+api/go: PROTOC_OUT_OPTS = paths=source_relative:
+api/go: proto-api-go
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+
+run: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 376):
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive file=$(CURRENT_IMG),format=$(IMG_FORMAT),id=uefi-disk
+
+patch:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 583):
+	@if ! echo $(REPO_BRANCH) | grep -Eq '^[0-9]+\.[0-9]+$$'; then echo "ERROR: must be on a release branch X.Y"; exit 1; fi
+	@if ! echo $(EVE_TREE_TAG) | grep -Eq '^$(REPO_BRANCH).[0-9]+-'; then echo "ERROR: can't find previous release's tag X.Y.Z"; exit 1; fi
+	@TAG=$(REPO_BRANCH).$$((`echo $(EVE_TREE_TAG) | sed -e 's#-.*$$##' | cut -f3 -d.` + 1))  &&\
+	 git tag -a -m"Release $$TAG" $$TAG                                                      &&\
+	 echo "Done tagging $$TAG patch release. Check the branch with git log and then run"     &&\
+	 echo "  git push origin $(REPO_BRANCH) $$TAG"
+
+help:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: ''
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := help
+# automatic
+# * := 
+# automatic
+# < := 
+# automatic
+# + := 
+# automatic
+# % := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# automatic
+# | := 
+# variable set hash-table stats:
+ 
+# Load=8/32=25%, Rehash=0, Collisions=1/11=9%
+#  recipe to execute (from 'Makefile', line 699):
+	@echo "EVE is Edge Virtualization Engine"
+	@echo
+	@echo "This Makefile automates commons tasks of building and running"
+	@echo "  * EVE"
+	@echo "  * Installer of EVE"
+	@echo "  * linuxkit command line tools"
+	@echo "We currently support two platforms: x86_64 and aarch64. There is"
+	@echo "even rudimentary support for cross-compiling that can be triggered"
+	@echo "by forcing a particular architecture via adding ZARCH=[x86_64|aarch64]"
+	@echo "to the make's command line. You can also run in a cross- way since"
+	@echo "all the execution is done via qemu."
+	@echo
+	@echo "Commonly used maintenance and development targets:"
+	@echo "   build-vm       prepare a build VM for EVE in qcow2 format"
+	@echo "   test           run EVE tests"
+	@echo "   clean          clean build artifacts in a current directory (doesn't clean Docker)"
+	@echo "   release        prepare branch for a release (VERSION=x.y.z required)"
+	@echo "   patch          make a patch release on a current branch (must be a release branch)"
+	@echo "   proto          generates Go and Python source from protobuf API definitions"
+	@echo "   proto-vendor   update vendored API in packages that require it (e.g. pkg/pillar)"
+	@echo "   shell          drop into docker container setup for Go development"
+	@echo "   yetus          run Apache Yetus to check the quality of the source tree"
+	@echo
+	@echo "Commonly used build targets:"
+	@echo "   build-tools    builds linuxkit utilities and installs under build-tools/bin"
+	@echo "   config         builds a bundle with initial EVE configs"
+	@echo "   pkgs           builds all EVE packages"
+	@echo "   pkg/XXX        builds XXX EVE package"
+	@echo "   rootfs         builds default EVE rootfs image (upload it to the cloud as BaseImage)"
+	@echo "   live           builds a full disk image of EVE which can be function as a virtual device"
+	@echo "   live-XXX       builds a particular kind of EVE live image (raw, qcow2, gcp, vdi, parallels)"
+	@echo "   installer-raw  builds raw disk installer image (to be installed on bootable media)"
+	@echo "   installer-iso  builds an ISO installers image (to be installed on bootable media)"
+	@echo "   installer-net  builds a tarball of artifacts to be used for PXE booting"
+	@echo
+	@echo "Commonly used run targets (note they don't automatically rebuild images they run):"
+	@echo "   run-compose        runs all EVE microservices via docker-compose deployment"
+	@echo "   run-build-vm       runs a build VM image"
+	@echo "   run-live           runs a full fledged virtual device on qemu (as close as it gets to actual h/w)"
+	@echo "   run-live-parallels runs a full fledged virtual device on Parallels Desktop"
+	@echo "   run-live-vb        runs a full fledged virtual device on VirtualBox"
+	@echo "   run-rootfs         runs a rootfs.img (limited usefulness e.g. quick test before cloud upload)"
+	@echo "   run-grub           runs our copy of GRUB bootloader and nothing else (very limited usefulness)"
+	@echo "   run-installer-iso  runs installer.iso (via qemu) and 'installs' EVE into (initially blank) target.img"
+	@echo "   run-installer-raw  runs installer.raw (via qemu) and 'installs' EVE into (initially blank) target.img"
+	@echo "   run-installer-net  runs installer.net (via qemu/iPXE) and 'installs' EVE into (initially blank) target.img"
+	@echo "   run-target         runs a full fledged virtual device on qemu from target.img (similar to run-live)"
+	@echo
+	@echo "make run is currently an alias for make run-live"
+	@echo
+
+# makefile (from 'Makefile', line 343)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img: PKG = mkimage-raw-efi
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/dom0-ztools:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/build.yml:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 548):
+	cp pkg/eve/$(@F) $@
+
+# Not a target:
+proto-api-go:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 456):
+	@mkdir -p $@
+	@cp -r pkg/eve/installer/* $@
+	# sample output 0.0.0-HEAD-a437e8e4-xen-amd64
+	@echo $(FULL_VERSION) > $(INSTALLER)/eve_version
+
+# Not a target:
+pkg/uefi:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/watchdog:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/guacd:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+itest: eve-build-rucoder run-proxy | /home/rucoder/zd/eve/dist/amd64
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 300):
+	@echo Running integration tests
+	@cd tests/integration ; CGO_ENABLED=0 GOOS= go test -v -run "$(ITESTS)" .
+
+/home/rucoder/zd/eve/dist/amd64/build-vm.qcow2: /home/rucoder/zd/eve/dist/amd64/build-vm-ci.qcow2 /home/rucoder/zd/eve/dist/amd64/build-vm.qcow2.orig /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd | /home/rucoder/zd/eve/dist/amd64
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 329):
+	cp $@.orig $@.active
+	# currently a fulle EVE build *almost* fits into 40Gb -- we need twice as much in a VM
+	qemu-img resize $@.active 100G
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive format=qcow2,file=$@.active -drive format=qcow2,file=$<
+	mv $@.active $@
+
+/home/rucoder/zd/eve/dist/amd64:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 451):
+	mkdir -p $@
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img: conf/DevicePortConfig conf/authorized_keys conf/grub.cfg conf/onboard.cert.pem conf/onboard.key.pem conf/root-certificate.pem conf/server conf/v2tlsbaseroot-certificates.pem | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 482):
+	./tools/makeconfig.sh $@ "$(ROOTFS_VERSION)" $(CONF_FILES)
+	$(QUIET): $@: Succeeded
+
+test: eve-build-rucoder | /home/rucoder/zd/eve/dist/amd64
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 295):
+	@echo Running tests on $(GOMODULE)
+	$(QUIET)$(DOCKER_GO) "gotestsum --jsonfile $(DOCKER_DIST)/results.json --junitfile $(DOCKER_DIST)/results.xml" $(GOTREE) $(GOMODULE)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+pkg/installer:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/wwan:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/newlog:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+proto-api-python:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+conf/root-certificate.pem:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 530)
+pkgs: RESCAN_DEPS = 
+# makefile (from 'Makefile', line 531)
+pkgs: FORCE_BUILD = 
+pkgs: build-tools pkg/acrn pkg/acrn-kernel pkg/alpine pkg/debug pkg/dnsmasq pkg/dom0-ztools pkg/fw pkg/gpt-tools pkg/grub pkg/guacd pkg/installer pkg/ipxe pkg/k3s pkg/kernel pkg/kvm-tools pkg/mkconf pkg/mkimage-iso-efi pkg/mkimage-raw-efi pkg/mkrootfs-ext4 pkg/mkrootfs-squash pkg/new-kernel pkg/newlog pkg/pillar pkg/qrexec-dom0 pkg/rngd pkg/storage-init pkg/strongswan pkg/u-boot pkg/uefi pkg/vtpm pkg/watchdog pkg/wlan pkg/wwan pkg/xen pkg/xen-tools
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=2/32=6%, Rehash=0, Collisions=0/3=0%
+#  recipe to execute (from 'Makefile', line 533):
+	@echo Done building packages
+
+# makefile (from 'Makefile', line 344)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/kernel: PKG = kernel
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/kernel: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+ 
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+currentversion:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 288):
+	#echo $(shell readlink $(CURRENT) | sed -E 's/rootfs-(.*)\.[^.]*$/\1/')
+	@cat $(CURRENT_DIR)/installer/eve_version
+
+run-installer-raw: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 365):
+	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
+	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) -drive file=$(INSTALLER).raw,format=raw $(QEMU_OPTS)
+
+# Not a target:
+pkg/kvm-tools:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+proto-diagram: eve-build-rucoder
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 565):
+	@$(DOCKER_GO) "/usr/local/bin/protodot -src ./api/proto/config/devconfig.proto -output devconfig && cp ~/protodot/generated/devconfig.* ./api/images && dot ./api/images/devconfig.dot -Tpng -o ./api/images/devconfig.png && echo generated ./api/images/devconfig.*" $(CURDIR) api
+
+# Not a target:
+pkg/mkrootfs-ext4:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 542)
+eve-installer: LINUXKIT_OPTS := --disable-content-trust     --force -hash aabbccffee00112233
+# Not a target:
+eve-installer:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/8=0%
+
+# Not a target:
+conf/server:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+shell: eve-build-rucoder
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 607):
+	$(QUIET)DOCKER_GO_ARGS=-t ; $(DOCKER_GO) bash $(GOTREE) $(GOMODULE)
+
+# Not a target:
+pkg/grub:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/storage-init:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+conf/DevicePortConfig:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/fw:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+HOSTARCH:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/build-vm-ci.qcow2: build-tools/src/scripts/cloud-init.in | /home/rucoder/zd/eve/dist/amd64
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 318):
+	@if [ -z "$(BUILD_VM_SSH_PUB_KEY)" ] || [ -z "$(BUILD_VM_GH_TOKEN)" ]; then                  \
+	    echo "Must be run as: make BUILD_VM_SSH_PUB_KEY=XXX BUILD_VM_GH_TOKEN=YYY $@" && exit 1 ;\
+	fi
+	$(QUIET)sed -e 's#@ZARCH@#$(subst amd64,x64,$(ZARCH))#' -e 's#@SSH_PUB_KEY@#$(BUILD_VM_SSH_PUB_KEY)#g'  \
+	     -e 's#@GH_TOKEN@#$(BUILD_VM_GH_TOKEN)#g' < $< | docker run -i alpine:edge sh -c             \
+	          'apk add cloud-utils > /dev/null 2>&1 && cloud-localds --disk-format qcow2 _ - && cat _' > $@
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-adam-kvm-amd64.squash: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-kvm-adam-amd64.squash
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+build-tools: /home/rucoder/zd/eve/build-tools/bin/linuxkit
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 315):
+	@echo Done building $<
+
+run-grub: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/boot /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 387):
+	[ -f $(EFI_PART)/BOOT/grub.cfg ] && mv $(EFI_PART)/BOOT/grub.cfg $(EFI_PART)/BOOT/grub.cfg.$(notdir $(shell mktemp))
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive format=vvfat,id=uefi-disk,label=EVE,file=fat:rw:$(EFI_PART)/..
+	$(QUIET): $@: Succeeded
+
+release:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 591):
+	@bail() { echo "ERROR: $$@" ; exit 1 ; } ;\
+	 X=`echo $(VERSION) | cut -s -d. -f1` ; Y=`echo $(VERSION) | cut -s -d. -f2` ; Z=`echo $(VERSION) | cut -s -d. -f3` ;\
+	 [ -z "$$X" -o -z "$$Y" -o -z "$$Z" ] && bail "VERSION missing (or incorrect). Re-run as: make VERSION=x.y.z $@" ;\
+	 (git fetch && [ `git diff origin/master..master | wc -l` -eq 0 ]) || bail "origin/master is different from master" ;\
+	 if git checkout $$X.$$Y 2>/dev/null ; then \
+	    echo "WARNING: branch $$X.$$Y already exists: you may want to run make patch instead" ;\
+	    git merge origin/master ;\
+	 else \
+	    git checkout master -b $$X.$$Y && echo zedcloud.zededa.net > conf/server &&\
+	    git commit -m"Setting default server to prod" conf/server ;\
+	 fi || bail "Can't create $$X.$$Y branch" ;\
+	 git tag -a -m"Release $$X.$$Y.$$Z" $$X.$$Y.$$Z &&\
+	 echo "Done tagging $$X.$$Y.$$Z release. Check the branch with git log and then run" &&\
+	 echo "  git push origin $$X.$$Y $$X.$$Y.$$Z"
+
+run-live: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 376):
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive file=$(CURRENT_IMG),format=$(IMG_FORMAT),id=uefi-disk
+
+# Not a target:
+pkg/alpine:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+yetus:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 307):
+	@echo Running yetus
+	docker run -it --rm -v $(CURDIR):/src:delegated -v /tmp:/tmp apache/yetus:0.13.0 \
+		--basedir=/src \
+		--dirty-workspace \
+		--empty-patch \
+		--plugins=all
+
+# Not a target:
+pkg/acrn-kernel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+eve-xen-tools:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+conf/grub.cfg:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-kvm-adam-amd64.squash: fullname-rootfs conf/ssh.key
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+eve-build-rucoder:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 629):
+	$(QUIET): "$@: Begin: GOBUILDER=$(GOBUILDER)"
+	@echo "Creating go builder image for user $(USER)"
+	$(QUIET)docker build --build-arg GOVER=$(GOVER) --build-arg USER=$(USER) --build-arg GROUP=$(GROUP) \
+                      --build-arg UID=$(UID) --build-arg GID=$(GID) \
+                      $(DOCKER_HTTP_PROXY) $(DOCKER_HTTPS_PROXY) $(DOCKER_NO_PROXY) $(DOCKER_ALL_PROXY) \
+                      -t $@ build-tools/src/scripts > /dev/null
+	@echo "$@ docker container is ready to use"
+	$(QUIET): $@: Succeeded
+
+pkg/qrexec-dom0: pkg/xen-tools eve-qrexec-dom0
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 540):
+	$(QUIET): $@: Succeeded
+
+/home/rucoder/zd/eve/dist/amd64/build-vm.qcow2.orig: | /home/rucoder/zd/eve/dist/amd64
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 326):
+	@curl -L $(BUILD_VM_SRC) > $@
+
+.PHONY: currentversion linuxkit proto-api-% all clean test run pkgs help build-tools live rootfs config installer live current FORCE /home/rucoder/zd/eve/dist/amd64 HOSTARCH
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+pkg/vtpm:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 341)
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/boot: PKG = u-boot
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/boot: /home/rucoder/zd/eve/build-tools/bin/linuxkit | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 349):
+	mkdir -p $(dir $@)
+	echo "==== DIR $(dir $@)"
+	cd $(dir $@) && $(DOCKER_UNPACK) $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG))-$(DOCKER_ARCH_TAG) $(notdir $@)
+	$(QUIET): $@: Succeeded
+
+ 
+run-live-parallels:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 415):
+	@[ -d "$(LIVE).parallels" ] || { echo "Please run: make live-parallels"; exit 1; }
+	@prlctl list -a | grep $(PARALLELS_VM_NAME) | grep "invalid" >/dev/null && prlctl unregister $(PARALLELS_VM_NAME) || echo "No invalid $(PARALLELS_VM_NAME) VM"
+	@if prlctl list --all | grep "$(PARALLELS_VM_NAME)"; then \
+		prlctl stop $(PARALLELS_VM_NAME) --kill; \
+		prlctl set $(PARALLELS_VM_NAME) --device-set hdd0 --image $(LIVE).parallels --nested-virt on --adaptive-hypervisor on --hypervisor-type parallels --cpus $(PARALLELS_CPUS) --memsize $(PARALLELS_MEMORY); \
+	else \
+		prlctl create $(PARALLELS_VM_NAME) --distribution ubuntu --no-hdd --dst $(DIST)/ ; \
+		prlctl set $(PARALLELS_VM_NAME) --device-add hdd --image $(LIVE).parallels --nested-virt on --adaptive-hypervisor on --hypervisor-type parallels --cpus $(PARALLELS_CPUS) --memsize $(PARALLELS_MEMORY); \
+		prlctl set $(PARALLELS_VM_NAME) --device-del net0 ; \
+		prlctl set $(PARALLELS_VM_NAME) --device-add net --type shared --adapter-type virtio --ipadd 192.168.1.0/24 --dhcp yes ; \
+		prlctl set $(PARALLELS_VM_NAME) --device-add net --type shared --adapter-type virtio --ipadd 192.168.2.0/24 --dhcp yes ; \
+		prlsrvctl net set Shared --nat-tcp-add ssh,$(SSH_PORT),$(PARALLELS_VM_NAME),22 ; \
+		prlctl start $(PARALLELS_VM_NAME) ; \
+	fi
+
+run-compose: images/version.yml
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 392):
+	# we regenerate this on every run, in case things changed
+	$(PARSE_PKGS) > tmp/images
+	docker-compose -f docker-compose.yml run storage-init sh -c 'rm -rf /run/* /config/* ; cp -Lr /conf/* /config/ ; echo IMGA > /run/eve.id'
+	docker-compose -f docker-compose.yml --env-file tmp/images up
+
+initrd: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+fullname-rootfs: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs-0.0.0-mikem_rust-installer-44a8cbed-kvm-amd64.squash current
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+images/version.yml:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# makefile (from 'Makefile', line 614)
+/home/rucoder/zd/eve/build-tools/bin/linuxkit: GOOS = $(shell uname -s | tr '[A-Z]' '[a-z]')
+/home/rucoder/zd/eve/build-tools/bin/linuxkit: | eve-build-rucoder
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=1/32=3%, Rehash=0, Collisions=0/2=0%
+#  recipe to execute (from 'Makefile', line 616):
+	$(QUIET)$(DOCKER_GO) \
+	"unset GOFLAGS; rm -rf /tmp/linuxkit && \
+	git clone $(LINUXKIT_SOURCE) /tmp/linuxkit && \
+	cd /tmp/linuxkit && \
+	git checkout $(LINUXKIT_VERSION) && \
+	cd /tmp/linuxkit/src/cmd/linuxkit && \
+	GO111MODULE=on CGO_ENABLED=0 go build -o /go/bin/linuxkit -mod=vendor . && \
+	cd && \
+	rm -rf /tmp/linuxkit" \
+	$(GOTREE) $(GOMODULE) $(BUILDTOOLS_BIN)
+	$(QUIET): $@: Succeeded
+
+# Not a target:
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/live.img.tar.gz:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+run-rootfs: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/boot /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 382):
+	(echo 'set devicetree="(hd0,msdos1)/eve.dtb"' ; echo 'set rootfs_root=/dev/vdb' ; echo 'set root=hd1' ; echo 'export rootfs_root' ; echo 'export devicetree' ; echo 'configfile /EFI/BOOT/grub.cfg' ) > $(EFI_PART)/BOOT/grub.cfg
+	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive file=$(ROOTFS_IMG),format=raw -drive file=fat:rw:$(EFI_PART)/..,label=CONFIG,id=uefi-disk,format=vvfat
+	$(QUIET): $@: Succeeded
+
+eve: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_CODE.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/firmware/OVMF_VARS.fd /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img fullname-rootfs /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/boot current /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/runme.sh /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/build.yml | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 552):
+	$(QUIET): "$@: Begin: EVE_REL=$(EVE_REL), HV=$(HV), LINUXKIT_PKG_TARGET=$(LINUXKIT_PKG_TARGET)"
+	cp images/*.yml $|
+	$(PARSE_PKGS) pkg/eve/Dockerfile.in > $|/Dockerfile
+	$(LINUXKIT) $(DASH_V) pkg $(LINUXKIT_PKG_TARGET) --disable-content-trust --hash-path $(CURDIR) --hash $(ROOTFS_VERSION)-$(HV) $(if $(strip $(EVE_REL)),--release) $(EVE_REL)$(if $(strip $(EVE_REL)),-$(HV)) $(FORCE_BUILD) $|
+	$(QUIET)if [ -n "$(EVE_REL)" ] && [ $(HV) = $(HV_DEFAULT) ]; then \
+	   $(LINUXKIT) $(DASH_V) pkg $(LINUXKIT_PKG_TARGET) --disable-content-trust --hash-path $(CURDIR) --hash $(EVE_REL)-$(HV) --release $(EVE_REL) $(FORCE_BUILD) $| ;\
+	fi
+	$(QUIET): $@: Succeeded
+
+/home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer.iso: /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/EFI /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/rootfs.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/initrd.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/installer.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/config.img /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer/persist.img | /home/rucoder/zd/eve/dist/amd64/0.0.0-mikem_rust-installer-44a8cbed/installer
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 512):
+	./tools/makeiso.sh $| $@ installer
+	$(QUIET): $@: Succeeded
+
+# files hash-table stats:
+# Load=148/1024=14%, Rehash=0, Collisions=23/418=6%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 203 / storage = 5183 B / avg = 25 B
+# current buf: size = 8162 B / used = 5183 B / count = 203 / avg = 25 B
+
+# strcache performance: lookups = 500 / hit rate = 59%
+# hash-table stats:
+# Load=203/8192=2%, Rehash=0, Collisions=0/500=0%
+# Finished Make data base on Mon Feb  7 19:01:22 2022
+
+ 

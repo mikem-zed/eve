@@ -1,0 +1,57 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/rucoder/zd/eve'
+ 
+echo "EVE is Edge Virtualization Engine"
+echo
+echo "This Makefile automates commons tasks of building and running"
+echo "  * EVE"
+echo "  * Installer of EVE"
+echo "  * linuxkit command line tools"
+echo "We currently support two platforms: x86_64 and aarch64. There is"
+echo "even rudimentary support for cross-compiling that can be triggered"
+echo "by forcing a particular architecture via adding ZARCH=[x86_64|aarch64]"
+echo "to the make's command line. You can also run in a cross- way since"
+echo "all the execution is done via qemu."
+echo
+echo "Commonly used maintenance and development targets:"
+echo "   build-vm       prepare a build VM for EVE in qcow2 format"
+echo "   test           run EVE tests"
+ 
+echo "   clean          clean build artifacts in a current directory (doesn't clean Docker)"
+echo "   release        prepare branch for a release (VERSION=x.y.z required)"
+echo "   patch          make a patch release on a current branch (must be a release branch)"
+echo "   proto          generates Go and Python source from protobuf API definitions"
+echo "   proto-vendor   update vendored API in packages that require it (e.g. pkg/pillar)"
+echo "   shell          drop into docker container setup for Go development"
+echo "   yetus          run Apache Yetus to check the quality of the source tree"
+echo
+echo "Commonly used build targets:"
+echo "   build-tools    builds linuxkit utilities and installs under build-tools/bin"
+echo "   config         builds a bundle with initial EVE configs"
+echo "   pkgs           builds all EVE packages"
+echo "   pkg/XXX        builds XXX EVE package"
+echo "   rootfs         builds default EVE rootfs image (upload it to the cloud as BaseImage)"
+echo "   live           builds a full disk image of EVE which can be function as a virtual device"
+echo "   live-XXX       builds a particular kind of EVE live image (raw, qcow2, gcp, vdi, parallels)"
+echo "   installer-raw  builds raw disk installer image (to be installed on bootable media)"
+echo "   installer-iso  builds an ISO installers image (to be installed on bootable media)"
+echo "   installer-net  builds a tarball of artifacts to be used for PXE booting"
+echo
+echo "Commonly used run targets (note they don't automatically rebuild images they run):"
+echo "   run-compose        runs all EVE microservices via docker-compose deployment"
+echo "   run-build-vm       runs a build VM image"
+echo "   run-live           runs a full fledged virtual device on qemu (as close as it gets to actual h/w)"
+echo "   run-live-parallels runs a full fledged virtual device on Parallels Desktop"
+echo "   run-live-vb        runs a full fledged virtual device on VirtualBox"
+echo "   run-rootfs         runs a rootfs.img (limited usefulness e.g. quick test before cloud upload)"
+echo "   run-grub           runs our copy of GRUB bootloader and nothing else (very limited usefulness)"
+echo "   run-installer-iso  runs installer.iso (via qemu) and 'installs' EVE into (initially blank) target.img"
+echo "   run-installer-raw  runs installer.raw (via qemu) and 'installs' EVE into (initially blank) target.img"
+echo "   run-installer-net  runs installer.net (via qemu/iPXE) and 'installs' EVE into (initially blank) target.img"
+echo "   run-target         runs a full fledged virtual device on qemu from target.img (similar to run-live)"
+echo
+echo "make run is currently an alias for make run-live"
+echo
+: all: Succeeded
+make: Leaving directory '/home/rucoder/zd/eve'
+ 

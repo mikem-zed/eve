@@ -26,8 +26,8 @@ onboot:
    - name: installer
      image: INSTALLER_TAG
      command: ["/bin/sh", "-c", "/sbin/run-installer.sh </dev/console >/dev/console 2>&1"]
-   - name: storage-init
-     image: STORAGE_INIT_TAG
+  #  - name: storage-init
+  #    image: STORAGE_INIT_TAG
 services:
    - name: newlogd
      image: NEWLOGD_TAG

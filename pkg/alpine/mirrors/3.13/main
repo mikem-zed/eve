@@ -65,6 +65,7 @@ iptables
 jpeg
 jpeg-dev
 jq
+kbd
 keyutils
 kmod
 kmod-dev

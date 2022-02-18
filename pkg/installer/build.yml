@@ -15,5 +15,10 @@ config:
     - /persist:/persist:rshared,rbind
     - /config:/config:rshared,rbind
     - /containers:/containers:rshared,rbind
+    # this one doesn't exist if we run 'live'
+    #- /media/boot:/bits:rshared,rbind
+    - /opt/zededa:/containers/services/pillar/lower/opt/zededa:rshared,rbind,rw
+    #- /opt/debug:/containers/services/debug/lower:rshared,rbind,rw
   capabilities:
     - all
+  rootfsPropagation: shared
