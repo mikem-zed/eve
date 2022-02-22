@@ -1,13 +1,24 @@
+#![feature(path_try_exists)]
 use anyhow::{anyhow, Context, Error, Result};
-use libc::{c_int, c_uint, statx};
-use regex::Regex;
-use std::ffi::CString;
-use std::fs::{DirEntry, File, ReadDir};
-use std::mem::MaybeUninit;
-use std::path::{Path, PathBuf};
+use gptman::linux::get_sector_size;
+use gptman::GPT;
+use lazy_static::lazy_static;
+use std::fs::DirEntry;
+use std::io::{Seek, SeekFrom};
+use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 use std::{collections::HashMap, fs};
+use uuid::Uuid;
+
+mod linux;
+use crate::linux::block::{get_blk_devices, BlkDevice, BlkTransport, FromStat, MajMin};
+use crate::linux::musl::stat;
+
+lazy_static! {
+    static ref EVE_CONFIG_UUID: Uuid =
+        Uuid::from_str("13307e62-cd9c-4920-8f9b-91b45828b798").unwrap();
+}
 
 #[derive(Debug)]
 struct KernelCmdline {
@@ -20,9 +31,18 @@ impl KernelCmdline {
             params: HashMap::new(),
         }
     }
-    fn parse(mut self) -> Result<Self> {
+    fn from_proc(self) -> Result<Self> {
         let raw = fs::read_to_string("/proc/cmdline").context("cannot open /proc/cmdline")?;
-        let split: Vec<&str> = raw.trim().split(' ').collect();
+        self.parse(&raw)
+    }
+
+    #[allow(dead_code)]
+    fn from_str(self, s: &str) -> Result<Self> {
+        self.parse(s)
+    }
+
+    fn parse(mut self, s: &str) -> Result<Self> {
+        let split: Vec<&str> = s.trim().split(' ').collect();
         split.iter().for_each(|e| {
             if let Some((key, value)) = e.split_once('=') {
                 self.params.insert(key.to_string(), Some(value.to_string()));
@@ -116,12 +136,6 @@ fn run_os_command(cmdline: &str) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug)]
-enum BlkTransport {
-    Sata,
-    Nvme,
-}
-
 impl FromStr for BlkTransport {
     type Err = Error;
 
@@ -134,171 +148,227 @@ impl FromStr for BlkTransport {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-struct MajMin {
-    maj: u32,
-    min: u32,
+enum RunMode {
+    Installer,
+    StorageInit,
+}
+struct InstallerCtx {
+    config: InstallerConfig,
+    boot_device: Option<BlkDevice>,
+    block_devices: Vec<BlkDevice>,
 }
 
-impl FromStatx for MajMin {
-    type Err = Error;
+// # content of rootfs partition
+// ROOTFS_IMG=/parts/rootfs.img
+// # content of conf partition
+// CONF_FILE=/parts/config.img
+// # content of persist partition
+// PERSIST_FILE=/parts/persist.img
+// # EFI boot directory
+// EFI_DIR=/parts/EFI
+// # early bootloader directory (optional)
+// BOOT_DIR=/parts/boot
+// # content of initrd installer image (optional)
+// INITRD_IMG=/parts/initrd.img
+// # content of installer ECO (optional)
+// INSTALLER_IMG=/parts/installer.img
+// # GRUB cfg override for our installer
+// INSTALLER_GRUB_CFG=/parts/grub.cfg
 
-    fn from_statx(st: &statx) -> Result<Self, Self::Err> {
-        if u32::from(st.stx_mode as u32 & libc::S_IFMT) == libc::S_IFBLK {
-            Ok(Self {
-                maj: st.stx_rdev_major,
-                min: st.stx_rdev_minor,
-            })
-        } else {
-            Err(anyhow!("Incorrect device mode"))
-        }
+#[cfg(test)]
+mod test;
+
+impl InstallerCtx {
+    fn build() -> Result<Self> {
+        let cmd_line = KernelCmdline::new()
+            .from_proc()
+            .with_context(|| "Cannot parse kernel command line")?;
+        let config = InstallerConfig::from_cmdline(&cmd_line);
+        Ok(Self {
+            config: config,
+            boot_device: None,
+            block_devices: Vec::new(),
+        })
     }
-}
 
-trait FromStatx: Sized {
-    type Err;
-    fn from_statx(st: &statx) -> Result<Self, Self::Err>;
-}
+    fn detect_boot_device(&mut self) -> Result<BlkDevice> {
+        let st = stat(PathBuf::from("/hostfs/media/boot"))
+            .with_context(|| "Couldn't get stats for '/hostfs/media/boot'")?;
 
-impl FromStr for MajMin {
-    type Err = Error;
+        println!("{:#?}", st);
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^([0-9]+):([0-9]+)$")?;
+        let mm = MajMin::from_stat(&st)?;
 
-        re.captures(s)
-            .ok_or(anyhow!("Couldn't convert MAJ:MIN for {}", s))
-            .and_then(|caps| {
-                Ok(MajMin {
-                    maj: caps
-                        .get(1)
-                        .ok_or(anyhow!("Couldn't convert MAJ:MIN for {}", s))?
-                        .as_str()
-                        .parse::<u32>()?,
-                    min: caps
-                        .get(2)
-                        .ok_or(anyhow!("Couldn't convert MAJ:MIN for {}", s))?
-                        .as_str()
-                        .parse::<u32>()?,
+        println!("{:#?}", mm);
+
+        self.block_devices =
+            get_blk_devices(false).with_context(|| "Couldn't get a list of block devices")?;
+
+        println!("{:#?}", self.block_devices);
+
+        // let boot_device = self
+        //     .block_devices
+        //     .iter()
+        //     .find(|e| e.majmin == mm)
+        //     .map(|e| e.to_owned())
+        //     .ok_or(anyhow!("Cannot detect boot device!"))?;
+
+        // if (boot_device.part_index.is_some()) {
+        let has_partition = |dev: &BlkDevice, part: &MajMin| {
+            dev.partitions.as_ref().map_or(false, |parts| {
+                parts.iter().find(|p| p.majmin == *part).is_some()
+            })
+        };
+        let boot_device = self
+            .block_devices
+            .iter()
+            .find(|blk| has_partition(blk, &mm))
+            .map(ToOwned::to_owned)
+            .ok_or(anyhow!("Cannot detect boot device!"));
+        // } else {
+        //     self.boot_device = Some(boot_device);
+        // }
+
+        boot_device
+    }
+
+    fn get_target_disks(&self) -> Vec<BlkDevice> {
+        let mut result = Vec::new();
+        if let Some(boot_dev) = &self.boot_device {
+            result = self
+                .block_devices
+                .iter()
+                .filter(|e| *e != boot_dev)
+                .filter(|dev| {
+                    // if we have a filter return only suitable drives
+                    if let Some(install_disk) = &self.config.eve_install_disk {
+                        dev.device_path.to_string_lossy() == *install_disk
+                    } else {
+                        true
+                    }
                 })
-            })
-    }
-}
-#[derive(Debug)]
-struct BlkDevice {
-    transport: BlkTransport,
-    device_path: PathBuf,
-    is_virtual: bool,
-    majmin: MajMin,
-}
-// /sys/devices/pci0000:00/0000:00:02.1/0000:02:00.1/ata2/host1/scsi_host/host1/proc_name
-// /sys/block/sda -> ../devices/pci0000:00/0000:00:02.1/0000:02:00.1/ata2/host1/target1:0:0/1:0:0:0/block/sda
-
-fn read_blk_device(dir: DirEntry) -> Result<BlkDevice> {
-    let link = fs::read_link(dir.path())?;
-
-    // we can do it safly becasue we are working with /sys and it is always ASCI
-    let is_virtual = link.to_string_lossy().contains("virtual");
-    let is_scsi_host = link.to_string_lossy().contains("virtual");
-
-    let dev_name_prefix = &dir.file_name().to_string_lossy()[0..3];
-
-    // if let Err(_) = BlkTransport::from_str(dev_name_prefix) {
-
-    // }
-
-    // let is_virtual = link
-    //     .components()
-    //     .find(|x| x.as_os_str().eq_ignore_ascii_case("virtual"))
-    //     .is_some();
-
-    // if link.to_str().or_else(|| anyhow!("Couldn't convert MAJ:MIN for {}", s)).contains("pci") {
-    //     link.to_str()
-    // }
-
-    let majmin = MajMin::from_str(fs::read_to_string(dir.path().join("dev"))?.trim())?;
-
-    Ok(BlkDevice {
-        transport: BlkTransport::Sata,
-        device_path: PathBuf::from("/dev").join(dir.file_name()),
-        is_virtual: is_virtual,
-        majmin,
-    })
-}
-
-fn get_blk_devices(include_virtual: bool) -> Result<Vec<BlkDevice>> {
-    let mut result = Vec::new();
-
-    for dir in fs::read_dir("/sys/block")? {
-        let b = read_blk_device(dir?)?;
-        if !include_virtual && b.is_virtual {
-            continue;
+                .map(|e| e.to_owned())
+                .collect();
         }
-        result.push(b);
+        result
     }
 
-    Ok(result)
+    fn get_persist_disks(&self) -> Vec<BlkDevice> {
+        let mut result = Vec::new();
+        if let Some(boot_dev) = &self.boot_device {
+            result = self
+                .block_devices
+                .iter()
+                // skip boot device
+                .filter(|e| *e != boot_dev)
+                .filter(|dev| {
+                    // we have a filter. include only matched entries
+                    // FIXME: we may have a situation when eve_persist_disk have more disks that we detected
+                    if let Some(disks) = &self.config.eve_persist_disk {
+                        disks
+                            .iter()
+                            .find(|e| **e == dev.device_path.to_string_lossy())
+                            .is_some()
+                    } else {
+                        true // always include disk if there is not filter
+                    }
+                })
+                .map(|e| e.to_owned())
+                .collect();
+        }
+        result
+    }
+
+    fn open_disk(&mut self, dev: &str) -> Result<(GPT, u64)> {
+        let mut f = fs::File::open(&dev)?;
+        let gpt = GPT::find_from(&mut f)?;
+        let len = f.seek(SeekFrom::End(0))?;
+
+        Ok((gpt, len))
+    }
+
+    fn do_install(&mut self) -> Result<()> {
+        self.boot_device = Some(self.detect_boot_device()?);
+
+        if let Some(boot_device) = self.boot_device {
+            println!("Boot device: {}", boot_device.device_path);
+        }
+
+        let mut disk = fs::File::open(&self.boot_device.as_ref().unwrap().device_path)?;
+        let len = disk.seek(SeekFrom::End(0))?;
+
+        if GPT::find_from(&mut disk).is_ok() {}
+
+        // let mut gpt =
+        //     gptman::GPT::new_from(&mut disk, sector_size, Uuid::new_v4().as_bytes().to_owned())?;
+
+        Ok(())
+
+        // if let dev = &self.boot_device {
+        //     println!("Boot device: {:#?}", dev);
+        //     let persist = self.get_persist_disks();
+        //     println!("Perist: {:#?}", &persist);
+
+        //     Ok(())
+        // } else {
+        //     Err(anyhow!("Couldn't detext boot device"))
+        // }
+    }
 }
 
-fn mystatx(path: PathBuf) -> Result<statx> {
-    let mut st = MaybeUninit::uninit();
-    let flags: c_int = libc::AT_SYMLINK_NOFOLLOW;
-    let mask: c_uint = libc::STATX_ALL;
-    let c_str = CString::new(path.to_str().ok_or(anyhow!(
-        "Couldn't convert a pth to CString {}",
-        path.to_string_lossy()
-    ))?)?;
-    unsafe {
-        match statx(0, c_str.as_ptr(), flags, mask, st.as_mut_ptr()) {
-            0 => Ok(st.assume_init()),
-            x => Err(anyhow!("Error calling statx: {}", x)),
+// pub fn generate_random_uuid() -> [u8; 16] {
+//     rand::thread_rng().gen()
+// }
+
+fn detect_run_mode() -> Result<RunMode> {
+    match fs::try_exists("/hostfs/media/boot") {
+        Ok(true) => Ok(RunMode::Installer),
+        Ok(false) => Ok(RunMode::StorageInit),
+        Err(err) => Err(err)
+            .map_err(anyhow::Error::from)
+            .with_context(|| "detect_run_mode failed!"),
+    }
+}
+
+fn run_installer() -> Result<InstallerCtx> {
+    // run_os_command("mount")?;
+    // run_os_command("ls -la /dev")?;
+
+    let mut ctx = InstallerCtx::build()?;
+
+    match detect_run_mode()? {
+        RunMode::Installer => {
+            println!("Running in INSTALLER mode");
+            ctx.do_install()?;
+        }
+        RunMode::StorageInit => {
+            println!("Running in STORAGE-INIT mode");
         }
     }
-}
 
-//fn get_root_device() -> Result<PuthBuf> {}
+    Ok(ctx)
+}
 
 fn main() -> Result<()> {
-    let cmd_line = KernelCmdline::new()
-        .parse()
-        .with_context(|| "Cannot parse kernel command line")?;
-    let config = InstallerConfig::from_cmdline(&cmd_line);
+    let res = get_blk_devices(false);
 
-    println!("{:#?}", cmd_line);
-    println!("{:#?}", config);
+    println!("{:#?}", res);
 
-    let devices = get_blk_devices(false).with_context(|| "Couldn't get a list of block devices")?;
-
-    for d in &devices {
-        println!("{:?}", d);
-    }
-
-    //run_os_command("mount")?;
-    //run_os_command("lsblk -anlb -o TYPE,NAME,SIZE,TRAN")?;
-    let st = mystatx(PathBuf::from("/dev/sda"))?;
-
-    print!("Stats: {:#?}", st);
-
-    if u32::from(st.stx_mode as u32 & libc::S_IFMT) == libc::S_IFBLK {
-        println!("this is a block device");
-    }
-    if u32::from(st.stx_mode as u32 & libc::S_IFMT) == libc::S_IFCHR {
-        println!("this is a char device");
-    }
-
-    let mm = MajMin::from_statx(&st)?;
-
-    let dev = devices.into_iter().find(|e| e.majmin == mm);
-
-    println!("Root device: {:#?}", dev);
-
-    let supported = match SupportedFilesystems::new() {
-        Ok(supported) => supported,
-        Err(why) => {
-            eprintln!("failed to get supported file systems: {}", why);
-            exit(1);
+    match run_installer() {
+        Ok(_) => {
+            println!("Installation completed");
+            run_os_command("/run-console.sh")?;
+            Ok(())
         }
-    };
+        Err(er) => {
+            println!("Installation failed! {:?}", er);
+            println!("==== entering shell ====");
+            run_os_command("/run-console.sh")?;
+            Err(er)
+        }
+    }
 
-    Ok(())
+    // //run_os_command("mount")?;
+    // //run_os_command("lsblk -anlb -o TYPE,NAME,SIZE,TRAN")?;
+    // res.map(|_| ())
 }

@@ -31,7 +31,7 @@ ROOTFS_FORMAT=squash
 # Image type for installer image
 INSTALLER_IMG_FORMAT=raw
 # SSH port to use for running images live
-SSH_PORT=2222
+SSH_PORT=2223
 # ports to proxy into a running EVE instance (in ssh notation with -L)
 SSH_PROXY=-L6000:localhost:6000
 # ssh key to be used for getting into an EVE instance
@@ -93,7 +93,7 @@ DOCKER_DIST=/eve/dist/$(ZARCH)
 
 LIVE=$(BUILD_DIR)/live
 LIVE_IMG=$(BUILD_DIR)/live.$(IMG_FORMAT)
-TARGET_IMG=$(BUILD_DIR)/target.img
+TARGET_IMG=$(BUILD_DIR)/target.img $(BUILD_DIR)/target_hdb.img $(BUILD_DIR)/target_hdc.img
 INSTALLER=$(BUILD_DIR)/installer
 BUILD_DIR=$(DIST)/$(ROOTFS_VERSION)
 CURRENT_DIR=$(DIST)/current
@@ -360,15 +360,29 @@ run-installer-iso: $(BIOS_IMG) $(DEVICETREE_DTB)
 	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
 	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) -cdrom $(INSTALLER).iso -boot d $(QEMU_OPTS)
 
+DRIVES:=$(foreach img, $(TARGET_IMG), -drive file=$(img),format=$(IMG_FORMAT))
+
 run-installer-raw: $(BIOS_IMG) $(DEVICETREE_DTB)
-	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
-	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) -drive file=$(INSTALLER).raw,format=raw $(QEMU_OPTS)
+	for img in $(TARGET_IMG); do \
+		qemu-img create -f ${IMG_FORMAT} $$img ${MEDIA_SIZE}M; \
+	done 
+	$(QEMU_SYSTEM) $(DRIVES) -drive file=$(CURRENT_INSTALLER).raw,format=raw $(QEMU_OPTS)
 
 run-installer-net: QEMU_TFTP_OPTS=,tftp=$(dir $(IPXE_IMG)),bootfile=$(notdir $(IPXE_IMG))
 run-installer-net: $(BIOS_IMG) $(IPXE_IMG) $(DEVICETREE_DTB)
-	tar -C $(INSTALLER) -xvf $(INSTALLER).net || :
-	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
-	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) $(QEMU_OPTS)
+	tar -C $(CURRENT_INSTALLER) -xvf $(CURRENT_INSTALLER).net || :
+
+	for img in $(TARGET_IMG); do \
+		qemu-img create -f ${IMG_FORMAT} $$img ${MEDIA_SIZE}M; \
+	done 
+#	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
+#	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) $(QEMU_OPTS)
+	$(QEMU_SYSTEM) $(DRIVES) $(QEMU_OPTS)
+
+test-installed: $(TARGET_IMG) $(DRIVES)
+	$(QEMU_SYSTEM) $(QEMU_OPTS) $(DRIVES)
+#	$(QEMU_SYSTEM) $(QEMU_OPTS) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT),id=uefi-disk
+
 
 # run MUST NOT change the current dir; it depends on the output being correct from a previous build
 run-live run: $(BIOS_IMG) $(DEVICETREE_DTB)
@@ -469,8 +483,8 @@ ssh-key: $(SSH_KEY)
 rootfs: $(ROOTFS_IMG) current
 live: $(LIVE_IMG) $(BIOS_IMG) current	; $(QUIET): "$@: Succeeded, LIVE_IMG=$(LIVE_IMG)"
 live-%: $(LIVE).%		; $(QUIET): "$@: Succeeded, LIVE=$(LIVE)"
-installer: $(INSTALLER_IMG)
-installer-%: $(INSTALLER).% current ; @echo "$@: Succeeded, INSTALLER_IMG=$<"
+installer: $(INSTALLER_IMG) current
+installer-%: $(INSTALLER).% $(BIOS_IMG) current ; @echo "$@: Succeeded, INSTALLER_IMG=$<"
 
 $(SSH_KEY):
 	rm -f $@*

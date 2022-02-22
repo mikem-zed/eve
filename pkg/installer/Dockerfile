@@ -33,7 +33,7 @@ FROM build as rust-builder
 RUN rm src/lib.rs
 COPY src ./src
 
-RUN cargo install --offline --debug --path .
+RUN cargo install --debug --path .
 
 FROM scratch as image
 COPY --from=build /out /
@@ -41,6 +41,7 @@ ENV RUST_BACKTRACE full
 COPY --from=rust-builder /usr/local/cargo/bin/installer /sbin/installer
 COPY run-installer.sh /sbin/run-installer.sh
 COPY installer.sh .
+COPY run-console.sh /
 
 WORKDIR /
 ENTRYPOINT []
