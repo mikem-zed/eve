@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
@@ -332,6 +333,69 @@ const qemuPciPassthruTemplate = `
   x-igd-opregion = "on"
 {{- end -}}
 `
+const qemuPciPassthruTemplateGroup = `
+[device "pci.{{.PCIId}}"]
+  driver = "pcie-root-port"
+  port = "1{{.PCIId}}"
+  chassis = "{{.PCIId}}"
+  bus = "pcie.0"
+  multifunction = "on"
+  addr = "{{printf "0x%x" .PCIId}}"
+  slot = "{{.PCIId}}"
+[device "pci.bridge.{{.PCIId}}"]
+  driver = "pcie-pci-bridge"
+  bus = "pci.{{.PCIId}}"
+{{- $bridge := .PCIId -}}
+{{range .Devices}}
+[device]
+  driver = "vfio-pci"
+  host = "{{.PciShortAddr}}"
+  bus = "pci.bridge.{{$bridge}}"
+  addr = "{{printf "0x%x" .PCIId}}"
+{{- if .Xvga }}
+  x-vga = "on"
+{{- end -}}
+{{- if .Xopregion }}
+  x-igd-opregion = "on"
+{{- end -}}
+{{- end -}}
+`
+
+// -device ioh3420,id=root_port1,chassis=0,slot=0,bus=pcie.0 \
+// -device vfio-pci,host=$NVIDIA.0,id=hostdev1,bus=root_port1,addr=0x00,multifunction=on,romfile=/opt/VM/Windows/1080Ti.rom \
+// -device vfio-pci,host=$NVIDIA.1,id=hostdev2,bus=root_port1,addr=0x00.1
+
+// [device "pci.bridge.{{.PCIId}}"]
+//   driver = "pcie-pci-bridge"
+//   bus = "pci.{{.PCIId}}"
+// {{- $bridge := .PCIId -}}
+
+// 2.2.2 Using multi-function PCI Express Root Ports:
+//       -device pcie-root-port,id=root_port1,multifunction=on,chassis=x,addr=z.0[,slot=y][,bus=pcie.0] \
+//       -device pcie-root-port,id=root_port2,chassis=x1,addr=z.1[,slot=y1][,bus=pcie.0] \
+//       -device pcie-root-port,id=root_port3,chassis=x2,addr=z.2[,slot=y2][,bus=pcie.0] \
+
+// for forwaarding multifunction devices as whole
+const qemuPciMultifunctionPortPassthroughTemplate = `
+[device "pci.{{.PCIId}}"]
+  driver = "pcie-root-port"
+  port = "1{{.PCIId}}"
+  bus = "pcie.0"
+  multifunction = "on"
+  addr = "{{printf "0x%x.0" .PCIId}}"
+  slot = "{{.PCIId}}"
+  chassis = "{{.Chassis}}"
+{{range .Devices}}
+[device]
+  driver = "vfio-pci"
+  host = "{{.PciShortAddr}}.{{.Function}}"
+  bus = "pci.{{.PCIId}}"
+  addr = "{{printf "0x%x.%x" .PCIId .Function}}"
+  slot = "{{.PCIId}}"
+  chassis = "{{.Chassis}}"
+  function = "{{.Function}}"
+`
+
 const qemuSerialTemplate = `
 [chardev "charserial-usr{{.ID}}"]
 {{- if eq .Machine "virt"}}
@@ -630,7 +694,7 @@ func (ctx kvmContext) CreateDomConfig(domainName string, config types.DomainConf
 	}
 
 	// Gather all PCI assignments into a single line
-	var pciAssignments []typeAndPCI
+	pciAssignments := make(map[string][]typeAndPCI)
 	// Gather all USB assignments into a single line
 	var usbAssignments []string
 	// Gather all serial assignments into a single line
@@ -656,7 +720,7 @@ func (ctx kvmContext) CreateDomConfig(domainName string, config types.DomainConf
 			if ib.PciLong != "" {
 				logrus.Infof("Adding PCI device <%v>\n", ib.PciLong)
 				tap := typeAndPCI{pciLong: ib.PciLong, ioType: ib.Type}
-				pciAssignments = addNoDuplicatePCI(pciAssignments, tap)
+				pciAssignments = addNoDuplicatePCI(pciAssignments, tap, ib.AssignmentGroup)
 			}
 			if ib.Serial != "" {
 				logrus.Infof("Adding serial <%s>\n", ib.Serial)
@@ -668,41 +732,111 @@ func (ctx kvmContext) CreateDomConfig(domainName string, config types.DomainConf
 			}
 		}
 	}
+	type pciPTDevice struct {
+		PCIId        int
+		PciShortAddr string
+		Xvga         bool
+		Xopregion    bool
+	}
 	if len(pciAssignments) != 0 {
-		pciPTContext := struct {
-			PCIId        int
-			PciShortAddr string
-			Xvga         bool
-			Xopregion    bool
-		}{PCIId: netContext.PCIId, PciShortAddr: "", Xvga: false, Xopregion: false}
+		ind := netContext.PCIId
+		chassis := ind
 
 		t, _ = template.New("qemuPciPT").Parse(qemuPciPassthruTemplate)
-		for _, pa := range pciAssignments {
-			short := types.PCILongToShort(pa.pciLong)
-			bootVgaFile := sysfsPciDevices + pa.pciLong + "/boot_vga"
-			if _, err := os.Stat(bootVgaFile); err == nil {
-				pciPTContext.Xvga = true
+		tMulti, _ := template.New("qemuPciPTMulti").Parse(qemuPciMultifunctionPortPassthroughTemplate)
+
+		// for all assignment groups
+		for _, addrAr := range pciAssignments {
+			// check if devices in the same assignment group are functions of the same device
+			// if so treat them as a MultifucntionPort
+			mDevs := make(map[string][]string)
+			for _, addr := range addrAr {
+				dev := types.PCILongToDevice(addr.pciLong)
+				fun := types.PCILongToFunction(addr.pciLong)
+				mDevs[dev] = append(mDevs[dev], fun)
 			}
-			vendorFile := sysfsPciDevices + pa.pciLong + "/vendor"
-			if vendor, err := os.ReadFile(vendorFile); err == nil {
-				// check for Intel vendor
-				if strings.TrimSpace(strings.TrimSuffix(string(vendor), "\n")) == "0x8086" {
-					if pciPTContext.Xvga {
-						// we set opregion for Intel vga
-						// https://github.com/qemu/qemu/blob/stable-5.0/docs/igd-assign.txt#L91-L96
-						pciPTContext.Xopregion = true
+			// for every entry in mDev get a sorted list of functions
+			// and create a MultifunctionPort if there is more than one function
+			for dev, funs := range mDevs {
+				sort.Strings(funs)
+				if len(funs) > 1 {
+					pciMultiContext := struct {
+						PCIId   int
+						Devices []pciPTDevice
+						Chassis int
+					}{PCIId: ind, Chassis: ind}
+					for fun := range funs {
+
 					}
+				} else {
+					// function can be not 0x00
+					pciLong := dev + "." + funs[0]
+					// create a regular pci device
+					pciPTContext := pciPTDevice{PCIId: ind, PciShortAddr: "", Xvga: false, Xopregion: false}
+					short := types.PCILongToShort(pciLong)
+					bootVgaFile := sysfsPciDevices + pciLong + "/boot_vga"
+					if _, err := os.Stat(bootVgaFile); err == nil {
+						pciPTContext.Xvga = true
+					}
+					vendorFile := sysfsPciDevices + pciLong + "/vendor"
+					if vendor, err := os.ReadFile(vendorFile); err == nil {
+						// check for Intel vendor
+						if strings.TrimSpace(strings.TrimSuffix(string(vendor), "\n")) == "0x8086" {
+							if pciPTContext.Xvga {
+								// we set opregion for Intel vga
+								// https://github.com/qemu/qemu/blob/stable-5.0/docs/igd-assign.txt#L91-L96
+								pciPTContext.Xopregion = true
+							}
+						}
+					}
+					pciPTContext.PciShortAddr = short
 				}
 			}
-
-			pciPTContext.PciShortAddr = short
-			if err := t.Execute(file, pciPTContext); err != nil {
-				return logError("can't write PCI Passthrough to config file %s (%v)", file.Name(), err)
-			}
-			pciPTContext.Xvga = false
-			pciPTContext.Xopregion = false
-			pciPTContext.PCIId = pciPTContext.PCIId + 1
 		}
+
+		// t, _ = template.New("qemuPciPT").Parse(qemuPciPassthruTemplate)
+		// tGroup, _ := template.New("qemuPciPTGroup").Parse(qemuPciPassthruTemplateGroup)
+		// for _, paAr := range pciAssignments {
+		// 	pciPTGroupContext := struct {
+		// 		PCIId   int
+		// 		Devices []pciPTDevice
+		// 	}{PCIId: ind}
+		// 	for _, pa := range paAr {
+		// 		pciPTContext := pciPTDevice{PCIId: ind, PciShortAddr: "", Xvga: false, Xopregion: false}
+		// 		short := types.PCILongToShort(pa.pciLong)
+		// 		bootVgaFile := sysfsPciDevices + pa.pciLong + "/boot_vga"
+		// 		if _, err := os.Stat(bootVgaFile); err == nil {
+		// 			pciPTContext.Xvga = true
+		// 		}
+		// 		vendorFile := sysfsPciDevices + pa.pciLong + "/vendor"
+		// 		if vendor, err := os.ReadFile(vendorFile); err == nil {
+		// 			// check for Intel vendor
+		// 			if strings.TrimSpace(strings.TrimSuffix(string(vendor), "\n")) == "0x8086" {
+		// 				if pciPTContext.Xvga {
+		// 					// we set opregion for Intel vga
+		// 					// https://github.com/qemu/qemu/blob/stable-5.0/docs/igd-assign.txt#L91-L96
+		// 					pciPTContext.Xopregion = true
+		// 				}
+		// 			}
+		// 		}
+		// 		pciPTContext.PciShortAddr = short
+		// 		if len(paAr) == 1 {
+		// 			if err := t.Execute(file, pciPTContext); err != nil {
+		// 				return logError("can't write PCI Passthrough to config file %s (%v)", file.Name(), err)
+		// 			}
+		// 			ind++
+		// 		} else {
+		// 			pciPTContext.PCIId = len(pciPTGroupContext.Devices) + 1
+		// 			pciPTGroupContext.Devices = append(pciPTGroupContext.Devices, pciPTContext)
+		// 		}
+		// 	}
+		// 	if len(pciPTGroupContext.Devices) > 0 {
+		// 		if err := tGroup.Execute(file, pciPTGroupContext); err != nil {
+		// 			return logError("can't write PCI Passthrough to config file %s (%v)", file.Name(), err)
+		// 		}
+		// 		ind++
+		// 	}
+		// }
 	}
 	if len(serialAssignments) != 0 {
 		serialPortContext := struct {

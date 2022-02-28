@@ -101,7 +101,7 @@ func vfIfNameToPci(ifName string) (string, error) {
 	}
 	vfIface := vfList.GetInfo(index)
 	if vfIface == nil {
-		return "", fmt.Errorf("Could not obtain information for %d vf for iface %s", index, parentIface)
+		return "", fmt.Errorf("could not obtain information for %d vf for iface %s", index, parentIface)
 	}
 	return vfIface.PciLong, nil
 }
@@ -109,6 +109,26 @@ func vfIfNameToPci(ifName string) (string, error) {
 // PCILongToShort returns the PCI ID without the domain id
 func PCILongToShort(long string) string {
 	return strings.SplitAfterN(long, ":", 2)[1]
+}
+
+// return the PCI function number
+func PCILongToFunction(long string) string {
+	return strings.SplitAfterN(long, ".", 2)[1]
+}
+
+// return the PCI device number without the function number
+func PCILongToDevice(long string) string {
+	return strings.SplitAfterN(long, ".", 2)[0]
+}
+
+// return true if PCI devices differ only in function number
+func PCISameDevice(long1 string, long2 string) bool {
+	if long1 == "" || long2 == "" {
+		return false
+	}
+	dev1 := PCILongToDevice(long1)
+	dev2 := PCILongToDevice(long2)
+	return dev1 == dev2
 }
 
 // PCISameController compares the PCI-ID without comparing the controller
