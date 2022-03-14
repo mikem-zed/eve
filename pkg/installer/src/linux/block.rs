@@ -1,13 +1,17 @@
-use anyhow::{anyhow, Error, Result};
+use crate::linux::musl::stat as linux_stat;
+use anyhow::{anyhow, Context, Error, Result};
+use gptman::{linux::get_sector_size, GPTPartitionEntry, GPT};
+use lazy_static::lazy_static;
 use libc::{major, minor, stat};
+use rand::Rng;
 use regex::Regex;
 use std::{
-    fs::{self, DirEntry, File, ReadDir},
+    fmt,
+    fs::{self, DirEntry},
+    io::{Seek, SeekFrom},
     path::PathBuf,
     str::FromStr,
 };
-
-use gptman::{linux::get_sector_size, GPT};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlkTransport {
@@ -21,8 +25,14 @@ pub struct MajMin {
 }
 
 impl MajMin {
-    fn device_path(&self) -> String {
-        format!("/sys/dev/block/{}:{}", self.maj, self.min)
+    pub fn device_path(&self) -> String {
+        format!("/sys/dev/block/{}", self)
+    }
+}
+
+impl fmt::Display for MajMin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.maj, self.min)
     }
 }
 
@@ -35,17 +45,38 @@ pub struct BlkDevice {
     pub partitions: Option<Vec<BlkDevice>>,
     pub part_index: Option<u32>,
     pub sector_size: u64,
-    pub label: Option<String>
+    pub label: Option<String>,
+    pub uuid: Option<[u8; 16]>,
+}
+
+pub fn generate_random_uuid() -> [u8; 16] {
+    rand::thread_rng().gen()
 }
 
 impl BlkDevice {
-    fn device_path_str(&self) -> &str {
-        &self.device_path.to_string_lossy()
+    pub fn device_path_str(&self) -> String {
+        self.device_path.to_string_lossy().to_string()
     }
-    fn read_partition_table(&self) -> Result<GPT> {
-        if let Some(index) =  {
-            
+
+    pub fn find_part(&self, label: &str) -> Option<&BlkDevice> {
+        let ret = self.partitions.as_ref().and_then(|e| {
+            e.iter()
+                .find(|p| p.label.as_ref().and_then(|e| Some(e == label)) == Some(true))
+        });
+        ret
+    }
+    pub fn new_gpt(&self) -> Result<(GPT, u64)> {
+        if self.part_index.is_some() {
+            return Err(anyhow!(
+                "Cannot create GPT on a prtition {}",
+                self.device_path_str()
+            ));
         }
+        let mut fd = fs::File::open(&self.device_path)?;
+        let gpt = GPT::new_from(&mut fd, self.sector_size, generate_random_uuid())?;
+        let len = fd.seek(SeekFrom::End(0))?;
+
+        Ok((gpt, len))
     }
 }
 
@@ -76,9 +107,12 @@ impl FromStr for MajMin {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(r"^([0-9]+):([0-9]+)$")?;
+        lazy_static! {
+            static ref MAJMIN_RE: Regex = Regex::new(r"^([0-9]+):([0-9]+)$").unwrap();
+        }
 
-        re.captures(s)
+        MAJMIN_RE
+            .captures(s)
             .ok_or(anyhow!("Couldn't convert MAJ:MIN for {}", s))
             .and_then(|caps| {
                 Ok(MajMin {
@@ -97,8 +131,6 @@ impl FromStr for MajMin {
     }
 }
 
-use crate::linux::musl::stat as linux_stat;
-
 fn find_dev_node(mm: &MajMin) -> Result<PathBuf> {
     let cmp_dev = |e: &DirEntry| {
         let r = linux_stat(e.path());
@@ -109,7 +141,7 @@ fn find_dev_node(mm: &MajMin) -> Result<PathBuf> {
         .collect::<Result<Vec<DirEntry>>>()
         .and_then(|e| {
             e.into_iter().find(|x| cmp_dev(x)).ok_or(anyhow!(
-                "Device {}:{} not found",
+                "Device node for {}:{} not found under /dev",
                 mm.maj,
                 mm.min
             ))
@@ -125,6 +157,8 @@ fn read_blk_device(dir: &DirEntry) -> Result<BlkDevice> {
     let is_virtual = link.to_string_lossy().contains("virtual");
 
     let majmin = MajMin::from_str(fs::read_to_string(dir.path().join("dev"))?.trim())?;
+    let device_path = find_dev_node(&majmin)
+        .with_context(|| format!("Cannot find /dev node for device {}", majmin))?;
 
     let parts_path = majmin.device_path();
 
@@ -138,16 +172,50 @@ fn read_blk_device(dir: &DirEntry) -> Result<BlkDevice> {
         })
         .collect();
 
+    //FIXME: collect::<Resilt<T>> on empty itterutor return OK()
     let part_devs = part_dirs
         .iter()
-        .map(|e| read_blk_device(e)) //FIXME: i do not like ignoring error with this ok()
+        .map(|e| read_blk_device(e))
         .collect::<Result<Vec<_>>>();
 
-    let partitons = if let Ok(partition) = part_devs {
-        if partition.is_empty() {
+    let mut fd = fs::File::open(&device_path)
+        .with_context(|| format!("Couldn't get file descriptor for {:?}", device_path))?;
+    let gpt = gptman::GPT::find_from(&mut fd);
+    let uuid = if let Ok(gpt) = &gpt {
+        Some(gpt.header.disk_guid)
+    } else {
+        None
+    };
+
+    let partitons = if let Ok(mut partitions) = part_devs {
+        if partitions.is_empty() {
             None
         } else {
-            Some(partition)
+            // we MUST have a partition table if we have partitions
+            //FIXME: it may be MBR without GPT
+            let gpt = gpt.unwrap();
+            // this device have partitions. detect partition lables
+            let find_gpt_entry = |idx: u32, part: &GPTPartitionEntry, part_idx: Option<u32>| {
+                if let Some(part_idx) = part_idx {
+                    if part_idx == idx {
+                        return Some((part.partition_name.to_owned(), part.unique_partition_guid));
+                    }
+                }
+                None
+            };
+
+            partitions.iter_mut().for_each(|dev| {
+                if let Some((label, uuid)) = gpt
+                    .iter()
+                    .filter(|(_, p)| p.is_used())
+                    .find_map(|(idx, p)| find_gpt_entry(idx, p, dev.part_index))
+                {
+                    dev.label = Some(label.to_string());
+                    dev.uuid = Some(uuid);
+                }
+            });
+
+            Some(partitions)
         }
     } else {
         None
@@ -161,16 +229,16 @@ fn read_blk_device(dir: &DirEntry) -> Result<BlkDevice> {
         None
     };
 
-    let device_path = find_dev_node(&majmin)?;
-
     Ok(BlkDevice {
         transport: BlkTransport::Sata,
         is_virtual: is_virtual,
         majmin: majmin,
         partitions: partitons,
         part_index: part_index,
-        sector_size: get_sector_size(&mut File::open(&device_path)?)?,
+        sector_size: get_sector_size(&mut fd)?, //FIXME: will panic for non-block devices
         device_path: device_path,
+        label: None,
+        uuid: uuid,
     })
 }
 
@@ -179,7 +247,8 @@ pub fn get_blk_devices(include_virtual: bool) -> Result<Vec<BlkDevice>> {
 
     // read devices but not partitions
     for dir in fs::read_dir("/sys/block")? {
-        let b = read_blk_device(&dir?)?;
+        let dir = dir?;
+        let b = read_blk_device(&dir).with_context(|| format!("Couldn't read {:?}", dir.path()))?;
         if !include_virtual && b.is_virtual {
             continue;
         }
@@ -188,67 +257,3 @@ pub fn get_blk_devices(include_virtual: bool) -> Result<Vec<BlkDevice>> {
 
     Ok(result)
 }
-
-// struct BlkDeviceTree<'a> {
-//     // /sys/block
-//     sys_block: Vec<Result<DirEntry>>,
-//     blk_devices: Vec<BlkDevice>,
-// }
-
-// impl<'a> BlkDeviceTree<'a> {
-//     fn new() -> Result<Self> {
-//         let devices: Vec<_> = fs::read_dir("/sys/block")?
-//             .filter(|e| e.is_ok())
-//             .map(|e| e.map_err(|e| anyhow!(e)))
-//             .collect();
-//         Ok(Self {
-//             sys_block: devices,
-//             blk_devices: Vec::new(),
-//         })
-//     }
-// }
-
-// struct IntoIteratorHelper {
-//     iter: ::std::vec::IntoIter<BlkDevice>,
-// }
-
-// impl<'a> IntoIterator for BlkDeviceTree<'a> {
-//     type Item = &'a BlkDevice;
-//     type IntoIter = IntoIteratorHelper;
-
-//     // note that into_iter() is consuming self
-//     fn into_iter(self) -> Self::IntoIter {
-//         IntoIteratorHelper {
-//             iter: self.blk_devices.into_iter(),
-//         }
-//     }
-// }
-
-// impl Iterator for IntoIteratorHelper {
-//     type Item = BlkDevice;
-
-//     // just return the reference
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.iter.next()
-//     }
-// }
-
-// impl Iterator for BlkDeviceTree {
-//     type Item = Result<BlkDevice>;
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let next = self.current.next();
-//         if let Some(next) = next {}
-//         None
-//     }
-// }
-//represents the whole /sys/device tree
-// // can return itterators over individual device types e.g. block devices
-// struct DeviceTree {
-
-// }
-
-// impl DeviceTree {
-//     fn new() -> Self { Self {  } }
-
-// }
