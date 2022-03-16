@@ -2,7 +2,7 @@ ARG EVE_BUILDER_IMAGE=lfedge/eve-alpine:6.7.0
 FROM ${EVE_BUILDER_IMAGE} AS build
 
 ENV BUILD_PKGS curl build-base git 
-ENV PKGS alpine-baselayout musl-utils bash
+ENV PKGS alpine-baselayout musl-utils smartmontools bash mtools util-linux
 
 RUN eve-alpine-deploy.sh
 
@@ -42,6 +42,7 @@ COPY --from=rust-builder /usr/local/cargo/bin/installer /sbin/installer
 COPY run-installer.sh /sbin/run-installer.sh
 COPY installer.sh .
 COPY run-console.sh /
+COPY grub.cfg.in /
 
 WORKDIR /
 ENTRYPOINT []

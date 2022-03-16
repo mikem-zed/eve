@@ -31,7 +31,7 @@ ROOTFS_FORMAT=squash
 # Image type for installer image
 INSTALLER_IMG_FORMAT=raw
 # SSH port to use for running images live
-SSH_PORT=2223
+SSH_PORT=2225
 # ports to proxy into a running EVE instance (in ssh notation with -L)
 SSH_PROXY=-L6000:localhost:6000
 # ssh key to be used for getting into an EVE instance
@@ -360,7 +360,8 @@ run-installer-iso: $(BIOS_IMG) $(DEVICETREE_DTB)
 	qemu-img create -f ${IMG_FORMAT} $(TARGET_IMG) ${MEDIA_SIZE}M
 	$(QEMU_SYSTEM) -drive file=$(TARGET_IMG),format=$(IMG_FORMAT) -cdrom $(INSTALLER).iso -boot d $(QEMU_OPTS)
 
-DRIVES:=$(foreach img, $(TARGET_IMG), -drive file=$(img),format=$(IMG_FORMAT))
+run-installer-raw: IMG_FORMAT=raw
+run-installer-raw: DRIVES:=$(foreach img, $(TARGET_IMG), -drive file=$(img),format=$(IMG_FORMAT))
 
 run-installer-raw: $(BIOS_IMG) $(DEVICETREE_DTB)
 	for img in $(TARGET_IMG); do \

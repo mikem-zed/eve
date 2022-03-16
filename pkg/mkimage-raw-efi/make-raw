@@ -132,6 +132,7 @@ do_system_vfat_part() {
   eval "$1=$((SEC_END + 1))"
 }
 
+# $1 - start sector
 do_efi() {
   mkefifs
   sed -e 's#@PATH_TO_GRUB@#'"$(cd /efifs; echo EFI/BOOT/BOOT*EFI)"'#' < /grub.cfg.in > /efifs/EFI/BOOT/grub.cfg

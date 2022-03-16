@@ -1,25 +1,144 @@
 #![feature(path_try_exists)]
 use anyhow::{anyhow, Context, Error, Result};
+use arrayvec::ArrayVec;
 use gptman::linux::get_sector_size;
-use gptman::GPT;
+use gptman::{GPTPartitionEntry, GPT};
 use lazy_static::lazy_static;
-use std::fs::DirEntry;
-use std::io::{Seek, SeekFrom};
-use std::path::PathBuf;
+use linux::block::generate_random_uuid;
+use regex::internal::Input;
+use regex::Regex;
+use std::ascii::AsciiExt;
+use std::env::temp_dir;
+use std::fs::{DirEntry, File, OpenOptions};
+use std::hash::Hasher;
+use std::io::{Read, Seek, SeekFrom, Write};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 use std::{collections::HashMap, fs};
-use uuid::Uuid;
+use tempfile::tempdir;
 
 mod linux;
 use crate::linux::block::{get_blk_devices, BlkDevice, BlkTransport, FromStat, MajMin};
 use crate::linux::musl::stat;
 
-lazy_static! {
-    static ref EVE_CONFIG_UUID: Uuid =
-        Uuid::from_str("13307e62-cd9c-4920-8f9b-91b45828b798").unwrap();
+//use gptman::
+
+#[cfg(test)]
+mod test;
+#[cfg(test)]
+mod test_guid {
+    use crate::PartitionGUID;
+    use anyhow::Result;
+
+    #[test]
+    fn test_guid_hyphened() -> Result<()> {
+        let res = PartitionGUID::parse_guid_mixed_endian("C12A7328-F81F-11D2-BA4B-00A0C93EC93B");
+        match res {
+            Ok(bytes) => {
+                assert_eq!(
+                    bytes.bytes,
+                    [
+                        0x28, 0x73, 0x2A, 0xC1, 0x1F, 0xF8, 0xD2, 0x11, 0xBA, 0x4B, 0x00, 0xA0,
+                        0xC9, 0x3E, 0xC9, 0x3B
+                    ]
+                );
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
+    }
+}
+//FIXME: I had to wrap it into an object to amke lazy_static! happy
+struct PartitionGUID {
+    bytes: [u8; 16],
 }
 
+impl PartitionGUID {
+    fn parse_guid_mixed_endian(guid: &str) -> Result<Self> {
+        let guid = guid
+            .as_bytes()
+            .to_ascii_uppercase()
+            .into_iter()
+            .filter(|&e| e != b'-')
+            .map(|e| {
+                if e.is_ascii_hexdigit() {
+                    Ok(e)
+                } else {
+                    Err(anyhow!("incorrect HEX character"))
+                }
+            })
+            .collect::<Result<Vec<u8>>>()?;
+        if guid.len() != 32 {
+            return Err(anyhow!("Incorrect string length"));
+        } else {
+            let to_4bit = |a: u8| match a {
+                b'0'..=b'9' => a - b'0',
+                b'A'..=b'F' => a - b'A' + 10,
+                _ => 0, // this is not really the case becasue we rejected incorrect input already
+            };
+
+            let first32_le: ArrayVec<_, 4> = guid[0..8]
+                .chunks(2)
+                .rev()
+                //.inspect(|e| println!("0x{}{}", char::from(e[0]), char::from(e[1])))
+                .map(|e| to_4bit(e[0]) << 4 | to_4bit(e[1]))
+                .collect();
+
+            let second16_le: ArrayVec<_, 2> = guid[8..12]
+                .chunks(2)
+                .rev()
+                .map(|e| to_4bit(e[0]) << 4 | to_4bit(e[1]))
+                .collect();
+
+            let third16_le: ArrayVec<_, 2> = guid[12..16]
+                .chunks(2)
+                .rev()
+                .map(|e| to_4bit(e[0]) << 4 | to_4bit(e[1]))
+                .collect();
+
+            let be_tail: Vec<u8> = guid[16..32]
+                .chunks(2)
+                .map(|e| to_4bit(e[0]) << 4 | to_4bit(e[1]))
+                .collect();
+
+            let result: ArrayVec<_, 16> = first32_le
+                .into_iter()
+                .chain(second16_le.into_iter())
+                .chain(third16_le.into_iter())
+                .chain(be_tail.into_iter())
+                .collect();
+            Ok(Self {
+                bytes: result
+                    .into_inner()
+                    .map_err(|_| anyhow!("Error converting"))?,
+            })
+        }
+    }
+}
+
+lazy_static! {
+    static ref EFI_SYSTEM_UUID: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("C12A7328-F81F-11D2-BA4B-00A0C93EC93B").unwrap();
+    static ref PARTITION_TYPE_USR_X86_64: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6").unwrap();
+    static ref CONFIG_GUID: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("13307e62-cd9c-4920-8f9b-91b45828b798").unwrap();
+    static ref BOOTLOADER_RE: Regex = Regex::new(r"BOOT.*\.EFI").unwrap();
+}
+
+//EFI partition size in bytes
+const EFI_PART_SIZE: u64 = 36 * 1024 * 1024;
+// rootfs partition size in bytes
+const ROOTFS_PART_SIZE: u64 = 300 * 1024 * 1024;
+// conf partition size in bytes
+const CONF_PART_SIZE: u64 = 1024 * 1024;
+// installer inventory parition size in bytes
+const WIN_INVENTORY_PART_SIZE: u64 = 40240 * 1024;
+// installer system parition size in bytes
+const INSTALLER_SYS_PART_SIZE: u64 = 300 * 1024 * 1024;
+// sector where the first partition starts on a blank disk
+const FIRST_PART_SEC: u64 = 2048;
 #[derive(Debug)]
 struct KernelCmdline {
     params: HashMap<String, Option<String>>,
@@ -104,7 +223,10 @@ impl InstallerConfig {
             .as_ref()
             .map(|e| e.trim().split(",").map(|e| e.to_string()).collect());
 
-        config.persist_fs_zfs = eve_persist_disk.map_or(false, |e| e.trim().ends_with(","));
+        // if e have more than one disk - this is ZFS,
+        // if we do not specify the disk but have a ',' this is ZFS as well
+        // if we have one disk and a ',' this is ZFS
+        config.persist_fs_zfs = eve_persist_disk.map_or(false, |e| e.contains(","));
 
         config.eve_nuke_disks = cmdline
             .get_str("eve_nuke_disks")
@@ -175,9 +297,6 @@ struct InstallerCtx {
 // # GRUB cfg override for our installer
 // INSTALLER_GRUB_CFG=/parts/grub.cfg
 
-#[cfg(test)]
-mod test;
-
 impl InstallerCtx {
     fn build() -> Result<Self> {
         let cmd_line = KernelCmdline::new()
@@ -206,14 +325,6 @@ impl InstallerCtx {
 
         println!("{:#?}", self.block_devices);
 
-        // let boot_device = self
-        //     .block_devices
-        //     .iter()
-        //     .find(|e| e.majmin == mm)
-        //     .map(|e| e.to_owned())
-        //     .ok_or(anyhow!("Cannot detect boot device!"))?;
-
-        // if (boot_device.part_index.is_some()) {
         let has_partition = |dev: &BlkDevice, part: &MajMin| {
             dev.partitions.as_ref().map_or(false, |parts| {
                 parts.iter().find(|p| p.majmin == *part).is_some()
@@ -225,9 +336,6 @@ impl InstallerCtx {
             .find(|blk| has_partition(blk, &mm))
             .map(ToOwned::to_owned)
             .ok_or(anyhow!("Cannot detect boot device!"));
-        // } else {
-        //     self.boot_device = Some(boot_device);
-        // }
 
         boot_device
     }
@@ -287,17 +395,232 @@ impl InstallerCtx {
         Ok((gpt, len))
     }
 
+    fn create_partition(
+        &self,
+        gpt: &mut GPT,
+        idx: u32,
+        label: &str,
+        size: u64,
+        type_uuid: [u8; 16],
+    ) -> Result<()> {
+        let sec_size = (size - 1) / gpt.sector_size + 1;
+
+        let start = gpt.find_first_place(sec_size).ok_or(anyhow!(
+            "Couldn't find a place for partition {}: size={}",
+            label,
+            size
+        ))?;
+
+        let aling_size = |size: u64| {
+            let aligned_up = ((sec_size - 1) / gpt.align + 1) * gpt.align;
+            aligned_up
+        };
+
+        gpt[idx] = GPTPartitionEntry {
+            starting_lba: start,
+            ending_lba: start + aling_size(size) + 1,
+            partition_type_guid: type_uuid,
+            unique_partition_guid: generate_random_uuid(),
+            attribute_bits: 0,
+            partition_name: label.into(),
+        };
+        Ok(())
+    }
+
+    fn create_efi_partition(&self, gpt: &mut GPT) -> Result<()> {
+        self.create_partition(gpt, 1, "EFI System", EFI_PART_SIZE, EFI_SYSTEM_UUID.bytes)?;
+        gpt[1].attribute_bits = 1 << 2; //legacy bootable
+        Ok(())
+    }
+
+    fn create_rootfs_partition(&self, gpt: &mut GPT, label: &str, primary: bool) -> Result<()> {
+        let index = if primary { 2 } else { 3 };
+        self.create_partition(
+            gpt,
+            index,
+            label,
+            ROOTFS_PART_SIZE,
+            PARTITION_TYPE_USR_X86_64.bytes,
+        )?;
+        if primary {
+            gpt[index].attribute_bits = 1 << 49 | 1 << 56;
+        }
+        Ok(())
+    }
+
+    fn create_config_partition(&self, gpt: &mut GPT) -> Result<()> {
+        self.create_partition(gpt, 4, "CONFIG", CONF_PART_SIZE, CONFIG_GUID.bytes)
+    }
+
+    fn create_partition_table(&self, dev: &BlkDevice) -> Result<BlkDevice> {
+        let (mut gpt, size) = dev.new_gpt()?;
+
+        println!("GPT: {:#?}", &gpt.header);
+
+        self.create_efi_partition(&mut gpt)?;
+        self.create_rootfs_partition(&mut gpt, "IMGA", true)?;
+        self.create_rootfs_partition(&mut gpt, "IMGB", false)?;
+        self.create_config_partition(&mut gpt)?;
+
+        let mut fd = OpenOptions::new().write(true).open(&dev.device_path)?;
+        //TODO: replace with hybrid MBR
+        GPT::write_protective_mbr_into(&mut fd, gpt.sector_size)?;
+        gpt.write_into(&mut fd)
+            .with_context(|| format!("Cannot writr GPT to {}", dev.device_path_str()))?;
+        // this call affects only a subtree of the owning block device
+        gptman::linux::reread_partition_table(&mut fd)?;
+
+        //rescan block devices
+        let block_devices = get_blk_devices(false)?;
+
+        let install_disk = block_devices
+            .iter()
+            .find(|e| e.device_path_str() == dev.device_path_str())
+            .ok_or(anyhow!("Could not get updated install disck"))
+            .map(|e| e.to_owned());
+        install_disk
+    }
+
+    fn populate_config(&self, src_part: &BlkDevice, dst_part: &BlkDevice) -> Result<()> {
+        mkfs_vfat(dst_part.device_path_str().as_str(), "EVE")?;
+
+        let o_path = tempdir()?;
+        let i_path = tempdir()?;
+
+        mount_vfat(dst_part.device_path_str().as_str(), o_path.path())?;
+        mount_vfat(src_part.device_path_str().as_str(), i_path.path())?;
+
+        // pass tmpdir by reference or the folder will be dropped
+        copy_dir_all(&i_path, &o_path)?;
+
+        // overwrite the server if provided in config
+        if let Some(server) = &self.config.eve_install_server {
+            fs::write(&o_path.path().join("server"), server)?;
+        }
+
+        umount(dst_part.device_path_str().as_str())?;
+        umount(src_part.device_path_str().as_str())?;
+        Ok(())
+    }
+
+    fn find_grub(&self) -> Result<PathBuf> {
+        let dir = fs::read_dir("/hostfs/media/boot/EFI/BOOT")?;
+        let bootloader = dir
+            .filter_map(|e| e.ok())
+            .find(|e| BOOTLOADER_RE.is_match(&e.file_name().to_string_lossy()));
+        bootloader
+            .and_then(|e| Some(Path::new("/EFI/BOOT").join(e.file_name())))
+            .ok_or(anyhow!("Couldn't get bootloader path"))
+    }
+
+    fn generate_grub_config(&self, path: &Path) -> Result<()> {
+        let grub = self.find_grub()?;
+        let mut cfg = fs::read_to_string("/grub.cfg.in")?;
+        cfg = cfg.replace("@PATH_TO_GRUB@", &grub.strip_prefix("/")?.to_string_lossy());
+        fs::write(path.join("grub.cfg"), cfg)?;
+        Ok(())
+    }
+
+    fn populate_efi(&self, dst_part: &BlkDevice) -> Result<()> {
+        mkfs_vfat(dst_part.device_path_str().as_str(), "EVE")?;
+
+        let dst_efi_path = tempdir()?;
+
+        mount_vfat(dst_part.device_path_str().as_str(), dst_efi_path.path())?;
+
+        let grub_path = dst_efi_path.path().join("EFI/BOOT");
+
+        fs::create_dir_all(&grub_path)?;
+
+        // pass tmpdir by reference or the folder will be dropped
+        copy_dir_all(Path::new("/hostfs/media/boot/EFI/BOOT/"), &grub_path)?;
+        self.generate_grub_config(&grub_path)?;
+
+        umount(dst_part.device_path_str().as_str())?;
+        Ok(())
+    }
+
+    fn populate_partitions(&self, install_dev: &BlkDevice, boot_dev: &BlkDevice) -> Result<()> {
+        let imga = install_dev
+            .find_part("IMGA")
+            .ok_or(anyhow!("Couldn't find IMGA"))?;
+        // let imgb = dev.find_part("IMGB").ok_or(anyhow!("Couldn't find IMGB"))?;
+        let dst_config_part = install_dev
+            .find_part("CONFIG")
+            .ok_or(anyhow!("Couldn't find CONFIG"))?;
+
+        let src_config_part = boot_dev
+            .find_part("CONFIG")
+            .ok_or(anyhow!("Couldn't find CONFIG"))?;
+
+        let dst_efi_part = install_dev
+            .find_part("EFI System")
+            .ok_or(anyhow!("Couldn't find EFI System"))?;
+
+        println!("config_i: {:#?}", src_config_part);
+
+        self.populate_config(src_config_part, dst_config_part)?;
+        self.populate_efi(dst_efi_part)?;
+
+        dd(
+            "/hostfs/media/boot/rootfs.img",
+            imga.device_path_str().as_str(),
+        )?;
+        // We do not populate IMGB
+        // dd(
+        //     "/hostfs/media/boot/rootfs.img",
+        //     imgb.device_path_str().as_str(),
+        // )?;
+        Ok(())
+    }
+
     fn do_install(&mut self) -> Result<()> {
         self.boot_device = Some(self.detect_boot_device()?);
 
-        if let Some(boot_device) = self.boot_device {
-            println!("Boot device: {}", boot_device.device_path);
+        if let Some(boot_device) = &self.boot_device {
+            println!("Boot device: {}", boot_device.device_path_str());
+
+            println!("{:#?}", boot_device.find_part("CONFIG"));
+            println!("{:#?}", boot_device.find_part("I do not exist"));
+
+            // skip boot device
+            let target_disks = self
+                .get_target_disks()
+                .into_iter()
+                .filter(|d| d.majmin != boot_device.majmin)
+                .collect::<Vec<BlkDevice>>();
+            println!("TARGET: {:#?}", target_disks);
+
+            //FIXME: take the first available for now
+            //TODO: sort by transport
+            let install_disk = &target_disks[0];
+            println!(
+                "INSTALLER: installing onto {}",
+                install_disk.device_path_str()
+            );
+
+            //TODO: check existent partition table
+            let install_disk = self.create_partition_table(install_disk)?;
+
+            println!("NEW BOOT: {:#?}", install_disk);
+
+            self.populate_partitions(&install_disk, &boot_device)?;
+
+            // skip boot device and install_disk
+            let persist_disks = self
+                .get_persist_disks()
+                .into_iter()
+                .filter(|d| d.majmin != boot_device.majmin)
+                .filter(|d| d.majmin != install_disk.majmin)
+                .collect::<Vec<BlkDevice>>();
+
+            println!("PERSIST: {:#?}", persist_disks);
         }
 
-        let mut disk = fs::File::open(&self.boot_device.as_ref().unwrap().device_path)?;
-        let len = disk.seek(SeekFrom::End(0))?;
+        // let mut disk = fs::File::open(&self.boot_device.as_ref().unwrap().device_path)?;
+        // let len = disk.seek(SeekFrom::End(0))?;
 
-        if GPT::find_from(&mut disk).is_ok() {}
+        // if GPT::find_from(&mut disk).is_ok() {}
 
         // let mut gpt =
         //     gptman::GPT::new_from(&mut disk, sector_size, Uuid::new_v4().as_bytes().to_owned())?;
@@ -316,9 +639,24 @@ impl InstallerCtx {
     }
 }
 
-// pub fn generate_random_uuid() -> [u8; 16] {
-//     rand::thread_rng().gen()
-// }
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+    println!(
+        "Copy all from {} to {}",
+        src.as_ref().to_string_lossy(),
+        dst.as_ref().to_string_lossy()
+    );
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
 
 fn detect_run_mode() -> Result<RunMode> {
     match fs::try_exists("/hostfs/media/boot") {
@@ -336,6 +674,8 @@ fn run_installer() -> Result<InstallerCtx> {
 
     let mut ctx = InstallerCtx::build()?;
 
+    println!("Detecting run mode");
+
     match detect_run_mode()? {
         RunMode::Installer => {
             println!("Running in INSTALLER mode");
@@ -349,7 +689,38 @@ fn run_installer() -> Result<InstallerCtx> {
     Ok(ctx)
 }
 
+fn dd(inf: &str, of: &str) -> Result<()> {
+    run_os_command(format!("dd if={} of={} bs=1M", inf, of).as_str())
+}
+
+fn mkfs_vfat(dev: &str, label: &str) -> Result<()> {
+    println!("Formating {} as VFAT", dev);
+    run_os_command(format!("mkfs.vfat -n {} {}", label, dev).as_str())
+}
+
+fn mount(dev: &str, path: &Path) -> Result<()> {
+    println!("Mounting {} as {}", dev, path.to_string_lossy());
+    run_os_command(format!("mount {} {}", dev, path.to_string_lossy()).as_str())
+}
+
+fn mount_vfat(dev: &str, path: &Path) -> Result<()> {
+    run_os_command(
+        format!(
+            "mount -t vfat -o iocharset=iso8859-1 {} {}",
+            dev,
+            path.to_string_lossy()
+        )
+        .as_str(),
+    )
+}
+
+fn umount(dev: &str) -> Result<()> {
+    println!("Unmounting {}", dev);
+    run_os_command(format!("umount {}", dev).as_str())
+}
+
 fn main() -> Result<()> {
+    println!("Starting EVE installer...");
     let res = get_blk_devices(false);
 
     println!("{:#?}", res);
@@ -370,5 +741,4 @@ fn main() -> Result<()> {
 
     // //run_os_command("mount")?;
     // //run_os_command("lsblk -anlb -o TYPE,NAME,SIZE,TRAN")?;
-    // res.map(|_| ())
 }

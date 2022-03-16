@@ -248,11 +248,18 @@ pub fn get_blk_devices(include_virtual: bool) -> Result<Vec<BlkDevice>> {
     // read devices but not partitions
     for dir in fs::read_dir("/sys/block")? {
         let dir = dir?;
-        let b = read_blk_device(&dir).with_context(|| format!("Couldn't read {:?}", dir.path()))?;
-        if !include_virtual && b.is_virtual {
-            continue;
+        let b = read_blk_device(&dir).with_context(|| format!("Couldn't read {:?}", dir.path()));
+        match b {
+            Ok(b) => {
+                if !include_virtual && b.is_virtual {
+                    continue;
+                }
+                result.push(b);
+            }
+            Err(e) => {
+                println!("WARNING: Couldn't read a block device {}", e);
+            }
         }
-        result.push(b);
     }
 
     Ok(result)

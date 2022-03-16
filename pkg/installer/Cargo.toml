@@ -12,5 +12,6 @@ gptman={git = "https://github.com/mikem-zed/gptman.git"}
 regex="1.5.4"
 libc="0.2.118"
 lazy_static = "1.4.0"
-uuid = {version = "0.8.2", features = ["v4"], defaul-features = false}
-#sys-mount="1.3.0"
+rand = "0.8.5"
+arrayvec = "0.7.2"
+tempfile="3.3.0"
