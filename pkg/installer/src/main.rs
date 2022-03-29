@@ -1,34 +1,82 @@
 #![feature(path_try_exists)]
 use anyhow::{anyhow, Context, Error, Result};
 use arrayvec::ArrayVec;
+use crossterm::{
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use cursive::views::{Dialog, TextView};
 use gptman::linux::get_sector_size;
 use gptman::{GPTPartitionEntry, GPT};
 use lazy_static::lazy_static;
 use linux::block::generate_random_uuid;
 use regex::internal::Input;
 use regex::Regex;
-use std::ascii::AsciiExt;
 use std::env::temp_dir;
 use std::fs::{DirEntry, File, OpenOptions};
 use std::hash::Hasher;
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io;
+use std::{ascii::AsciiExt, io::Stdout};
+//use std::io::{Read, Seek, SeekFrom, Write};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
+use std::sync::mpsc;
+use std::thread;
+use std::time::{Duration, Instant};
 use std::{collections::HashMap, fs};
 use tempfile::tempdir;
+use tui::{
+    backend::{Backend, CrosstermBackend},
+    layout::{Alignment, Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::{Span, Spans},
+    widgets::{
+        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table,
+        TableState, Tabs,
+    },
+    Frame, Terminal,
+};
 
 mod linux;
 use crate::linux::block::{get_blk_devices, BlkDevice, BlkTransport, FromStat, MajMin};
 use crate::linux::musl::stat;
 
-//use gptman::
+//EFI partition size in bytes
+const EFI_PART_SIZE: u64 = 36 * 1024 * 1024;
+// rootfs partition size in bytes
+const ROOTFS_PART_SIZE: u64 = 300 * 1024 * 1024;
+// conf partition size in bytes
+const CONF_PART_SIZE: u64 = 1024 * 1024;
+// installer inventory parition size in bytes
+const WIN_INVENTORY_PART_SIZE: u64 = 40240 * 1024;
+// installer system parition size in bytes
+const INSTALLER_SYS_PART_SIZE: u64 = 300 * 1024 * 1024;
+// sector where the first partition starts on a blank disk
+const FIRST_PART_SEC: u64 = 2048;
+//FIXME: I had to wrap it into an object to amke lazy_static! happy
+struct PartitionGUID {
+    bytes: [u8; 16],
+}
 
+lazy_static! {
+    static ref EFI_SYSTEM_UUID: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("C12A7328-F81F-11D2-BA4B-00A0C93EC93B").unwrap();
+    static ref PARTITION_TYPE_USR_X86_64: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6").unwrap();
+    static ref CONFIG_GUID: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("13307e62-cd9c-4920-8f9b-91b45828b798").unwrap();
+    static ref P3_GUID: PartitionGUID =
+        PartitionGUID::parse_guid_mixed_endian("5f24425a-2dfa-11e8-a270-7b663faccc2c").unwrap();
+    static ref BOOTLOADER_RE: Regex = Regex::new(r"BOOT.*\.EFI").unwrap();
+}
 #[cfg(test)]
 mod test;
 #[cfg(test)]
 mod test_guid {
-    use crate::PartitionGUID;
+    use crate::{InstallerConfig, PartitionGUID};
     use anyhow::Result;
 
     #[test]
@@ -48,10 +96,16 @@ mod test_guid {
             Err(err) => Err(err),
         }
     }
-}
-//FIXME: I had to wrap it into an object to amke lazy_static! happy
-struct PartitionGUID {
-    bytes: [u8; 16],
+    #[test]
+    fn test_json_serialize() -> Result<()> {
+        let mut cfg = InstallerConfig::default();
+        cfg.eve_install_server = Some("http://server".to_string());
+        cfg.eve_persist_disk = Some(vec![String::from("/dev/sda"), String::from("/dev/sdc")]);
+        cfg.eve_install_disk = Some(String::from("/dev/sdb"));
+        let s = serde_json::to_string_pretty(&cfg)?;
+        println!("{}", s);
+        Ok(())
+    }
 }
 
 impl PartitionGUID {
@@ -117,28 +171,6 @@ impl PartitionGUID {
     }
 }
 
-lazy_static! {
-    static ref EFI_SYSTEM_UUID: PartitionGUID =
-        PartitionGUID::parse_guid_mixed_endian("C12A7328-F81F-11D2-BA4B-00A0C93EC93B").unwrap();
-    static ref PARTITION_TYPE_USR_X86_64: PartitionGUID =
-        PartitionGUID::parse_guid_mixed_endian("5dfbf5f4-2848-4bac-aa5e-0d9a20b745a6").unwrap();
-    static ref CONFIG_GUID: PartitionGUID =
-        PartitionGUID::parse_guid_mixed_endian("13307e62-cd9c-4920-8f9b-91b45828b798").unwrap();
-    static ref BOOTLOADER_RE: Regex = Regex::new(r"BOOT.*\.EFI").unwrap();
-}
-
-//EFI partition size in bytes
-const EFI_PART_SIZE: u64 = 36 * 1024 * 1024;
-// rootfs partition size in bytes
-const ROOTFS_PART_SIZE: u64 = 300 * 1024 * 1024;
-// conf partition size in bytes
-const CONF_PART_SIZE: u64 = 1024 * 1024;
-// installer inventory parition size in bytes
-const WIN_INVENTORY_PART_SIZE: u64 = 40240 * 1024;
-// installer system parition size in bytes
-const INSTALLER_SYS_PART_SIZE: u64 = 300 * 1024 * 1024;
-// sector where the first partition starts on a blank disk
-const FIRST_PART_SEC: u64 = 2048;
 #[derive(Debug)]
 struct KernelCmdline {
     params: HashMap<String, Option<String>>,
@@ -180,7 +212,9 @@ impl KernelCmdline {
     }
 }
 
-#[derive(Debug, Default)]
+// separate json
+// install server and soft serial come from cmd line only
+#[derive(Debug, Default, Deserialize, Serialize)]
 struct InstallerConfig {
     eve_nuke_disks: Option<Vec<String>>,
     eve_nuke_all_disks: bool,
@@ -223,9 +257,9 @@ impl InstallerConfig {
             .as_ref()
             .map(|e| e.trim().split(",").map(|e| e.to_string()).collect());
 
+        // if we have one disk and a ',' this is ZFS
         // if e have more than one disk - this is ZFS,
         // if we do not specify the disk but have a ',' this is ZFS as well
-        // if we have one disk and a ',' this is ZFS
         config.persist_fs_zfs = eve_persist_disk.map_or(false, |e| e.contains(","));
 
         config.eve_nuke_disks = cmdline
@@ -271,13 +305,15 @@ impl FromStr for BlkTransport {
 }
 
 enum RunMode {
-    Installer,
-    StorageInit,
+    UnattendedInstaller,
+    InteractiveInstaller,
+    Recovery,
 }
 struct InstallerCtx {
     config: InstallerConfig,
     boot_device: Option<BlkDevice>,
     block_devices: Vec<BlkDevice>,
+    json_config: Option<String>,
 }
 
 // # content of rootfs partition
@@ -307,10 +343,11 @@ impl InstallerCtx {
             config: config,
             boot_device: None,
             block_devices: Vec::new(),
+            json_config: None,
         })
     }
 
-    fn detect_boot_device(&mut self) -> Result<BlkDevice> {
+    fn detect_boot_device(&mut self) -> Result<()> {
         let st = stat(PathBuf::from("/hostfs/media/boot"))
             .with_context(|| "Couldn't get stats for '/hostfs/media/boot'")?;
 
@@ -337,7 +374,8 @@ impl InstallerCtx {
             .map(ToOwned::to_owned)
             .ok_or(anyhow!("Cannot detect boot device!"));
 
-        boot_device
+        self.boot_device = Some(boot_device?);
+        Ok(())
     }
 
     fn get_target_disks(&self) -> Vec<BlkDevice> {
@@ -387,13 +425,13 @@ impl InstallerCtx {
         result
     }
 
-    fn open_disk(&mut self, dev: &str) -> Result<(GPT, u64)> {
-        let mut f = fs::File::open(&dev)?;
-        let gpt = GPT::find_from(&mut f)?;
-        let len = f.seek(SeekFrom::End(0))?;
+    // fn open_disk(&mut self, dev: &str) -> Result<(GPT, u64)> {
+    //     let mut f = fs::File::open(&dev)?;
+    //     let gpt = GPT::find_from(&mut f)?;
+    //     let len = f.seek(SeekFrom::End(0))?;
 
-        Ok((gpt, len))
-    }
+    //     Ok((gpt, len))
+    // }
 
     fn create_partition(
         &self,
@@ -452,7 +490,21 @@ impl InstallerCtx {
         self.create_partition(gpt, 4, "CONFIG", CONF_PART_SIZE, CONFIG_GUID.bytes)
     }
 
-    fn create_partition_table(&self, dev: &BlkDevice) -> Result<BlkDevice> {
+    fn create_persist_partition(&self, gpt: &mut GPT) -> Result<()> {
+        self.create_partition(
+            gpt,
+            9,
+            "P3",
+            gpt.get_maximum_partition_size()?,
+            P3_GUID.bytes,
+        )
+    }
+
+    fn create_partition_table(
+        &self,
+        dev: &BlkDevice,
+        persist: &Vec<BlkDevice>,
+    ) -> Result<BlkDevice> {
         let (mut gpt, size) = dev.new_gpt()?;
 
         println!("GPT: {:#?}", &gpt.header);
@@ -461,6 +513,15 @@ impl InstallerCtx {
         self.create_rootfs_partition(&mut gpt, "IMGA", true)?;
         self.create_rootfs_partition(&mut gpt, "IMGB", false)?;
         self.create_config_partition(&mut gpt)?;
+
+        // if we want persist on the same disk - add a GPT entry
+        if let Some(persist) = &self.config.eve_persist_disk {
+            if persist.len() == 1 && persist[0] == dev.device_path_str() {
+                self.create_persist_partition(&mut gpt)?;
+            }
+        } else {
+            self.create_persist_partition(&mut gpt)?;
+        }
 
         let mut fd = OpenOptions::new().write(true).open(&dev.device_path)?;
         //TODO: replace with hybrid MBR
@@ -503,7 +564,7 @@ impl InstallerCtx {
         Ok(())
     }
 
-    fn find_grub(&self) -> Result<PathBuf> {
+    fn find_grub_efi_app(&self) -> Result<PathBuf> {
         let dir = fs::read_dir("/hostfs/media/boot/EFI/BOOT")?;
         let bootloader = dir
             .filter_map(|e| e.ok())
@@ -514,7 +575,7 @@ impl InstallerCtx {
     }
 
     fn generate_grub_config(&self, path: &Path) -> Result<()> {
-        let grub = self.find_grub()?;
+        let grub = self.find_grub_efi_app()?;
         let mut cfg = fs::read_to_string("/grub.cfg.in")?;
         cfg = cfg.replace("@PATH_TO_GRUB@", &grub.strip_prefix("/")?.to_string_lossy());
         fs::write(path.join("grub.cfg"), cfg)?;
@@ -540,6 +601,37 @@ impl InstallerCtx {
         Ok(())
     }
 
+    fn populate_persist_ext4(&self, dst_part: &BlkDevice) -> Result<()> {
+        mkfs_ext4(dst_part.device_path_str().as_str())?;
+        run_os_command(
+            format!("tune2fs -O encrypt {}", dst_part.device_path_str().as_str()).as_str(),
+        )?;
+        //fs::try_create_dir("/persist")?;
+        mount_ext4(dst_part.device_path_str().as_str(), Path::new("/persist"))
+    }
+
+    // UUID_SYMLINK_PATH="/dev/disk/by-uuid"
+    // mkdir -p $UUID_SYMLINK_PATH
+    // chmod 700 $UUID_SYMLINK_PATH
+    // BLK_DEVICES=$(ls /sys/class/block/)
+    // for BLK_DEVICE in $BLK_DEVICES; do
+    //     BLK_UUID=$(blkid "/dev/$BLK_DEVICE" | sed -n 's/.*UUID=//p' | sed 's/"//g' | awk '{print $1}')
+    //     if [ -n "${BLK_UUID}" ]; then
+    //         ln -s "/dev/$BLK_DEVICE" "$UUID_SYMLINK_PATH/$BLK_UUID"
+    //     fi
+    // done
+
+    // #Recording SMART details to a file
+    // SMART_JSON=$(smartctl -a "$(grep -m 1 /persist < /proc/mounts | cut -d ' ' -f 1)" --json)
+    // if [ -f "$SMART_DETAILS_PREVIOUS_FILE" ];
+    // then
+    //   mv $SMART_DETAILS_FILE $SMART_DETAILS_PREVIOUS_FILE
+    //   echo "$SMART_JSON" > $SMART_DETAILS_FILE
+    // else
+    //   echo "$SMART_JSON" > $SMART_DETAILS_FILE
+    //   echo "$SMART_JSON" > $SMART_DETAILS_PREVIOUS_FILE
+    // fi
+
     fn populate_partitions(&self, install_dev: &BlkDevice, boot_dev: &BlkDevice) -> Result<()> {
         let imga = install_dev
             .find_part("IMGA")
@@ -557,6 +649,8 @@ impl InstallerCtx {
             .find_part("EFI System")
             .ok_or(anyhow!("Couldn't find EFI System"))?;
 
+        let dst_persist_part = install_dev.find_part("P3");
+
         println!("config_i: {:#?}", src_config_part);
 
         self.populate_config(src_config_part, dst_config_part)?;
@@ -571,11 +665,19 @@ impl InstallerCtx {
         //     "/hostfs/media/boot/rootfs.img",
         //     imgb.device_path_str().as_str(),
         // )?;
+
+        if let Some(persist) = dst_persist_part {
+            self.populate_persist_ext4(persist)?;
+            fs::write("/run/eve.persist_type", "ext4")?;
+        }
+
+        mount_vfat(&dst_config_part.device_path_str(), Path::new("/config"))?;
+
         Ok(())
     }
 
     fn do_install(&mut self) -> Result<()> {
-        self.boot_device = Some(self.detect_boot_device()?);
+        //self.boot_device = Some(self.detect_boot_device()?);
 
         if let Some(boot_device) = &self.boot_device {
             println!("Boot device: {}", boot_device.device_path_str());
@@ -598,14 +700,6 @@ impl InstallerCtx {
                 "INSTALLER: installing onto {}",
                 install_disk.device_path_str()
             );
-
-            //TODO: check existent partition table
-            let install_disk = self.create_partition_table(install_disk)?;
-
-            println!("NEW BOOT: {:#?}", install_disk);
-
-            self.populate_partitions(&install_disk, &boot_device)?;
-
             // skip boot device and install_disk
             let persist_disks = self
                 .get_persist_disks()
@@ -613,6 +707,13 @@ impl InstallerCtx {
                 .filter(|d| d.majmin != boot_device.majmin)
                 .filter(|d| d.majmin != install_disk.majmin)
                 .collect::<Vec<BlkDevice>>();
+
+            //TODO: check existent partition table
+            let install_disk = self.create_partition_table(install_disk, &persist_disks)?;
+
+            println!("NEW BOOT: {:#?}", install_disk);
+
+            self.populate_partitions(&install_disk, &boot_device)?;
 
             println!("PERSIST: {:#?}", persist_disks);
         }
@@ -658,35 +759,80 @@ fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
-fn detect_run_mode() -> Result<RunMode> {
+fn detect_run_mode(ctx: &mut InstallerCtx) -> Result<RunMode> {
     match fs::try_exists("/hostfs/media/boot") {
-        Ok(true) => Ok(RunMode::Installer),
-        Ok(false) => Ok(RunMode::StorageInit),
+        Ok(true) => {
+            let src_config_part = ctx
+                .boot_device
+                .as_ref()
+                .and_then(|e| e.find_part("CONFIG"))
+                .ok_or(anyhow!("Couldn't find CONFIG partition"))?;
+
+            let tmp_path = tempdir()?;
+            mount_vfat(src_config_part.device_path_str().as_str(), &tmp_path.path())?;
+            if let Ok(cfg) = fs::read_to_string(&tmp_path.path().join("installer.json")) {
+                ctx.json_config = Some(cfg);
+            }
+            umount(src_config_part.device_path_str().as_str())?;
+
+            if ctx.json_config.is_some() {
+                Ok(RunMode::UnattendedInstaller)
+            } else {
+                Ok(RunMode::InteractiveInstaller)
+            }
+        }
+        Ok(false) => Ok(RunMode::Recovery),
         Err(err) => Err(err)
             .map_err(anyhow::Error::from)
             .with_context(|| "detect_run_mode failed!"),
     }
 }
 
-fn run_installer() -> Result<InstallerCtx> {
-    // run_os_command("mount")?;
-    // run_os_command("ls -la /dev")?;
+fn run_interactive(ctx: &mut InstallerCtx) -> Result<()> {
+    // setup terminal
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
 
-    let mut ctx = InstallerCtx::build()?;
+    // create app and run it
+    let tick_rate = Duration::from_millis(250);
+    let app = App::new(ctx);
+    let res = run_app(&mut terminal, app, tick_rate, &mut Ui::new());
 
+    // restore terminal
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
+    terminal.show_cursor()?;
+    Ok(())
+}
+
+fn run_installer(ctx: &mut InstallerCtx) -> Result<()> {
     println!("Detecting run mode");
+    ctx.detect_boot_device()?;
 
-    match detect_run_mode()? {
-        RunMode::Installer => {
-            println!("Running in INSTALLER mode");
+    if ctx.config.eve_pause_before_install {
+        println!("==== entering shell on eve_pause_before_install ====");
+        run_os_command("/run-console.sh")?;
+    }
+
+    match detect_run_mode(ctx)? {
+        RunMode::UnattendedInstaller => {
+            println!("Running in UNATTENDED INSTALLER mode");
+            ctx.config = serde_json::from_str(&ctx.json_config.as_ref().unwrap().as_str())?;
             ctx.do_install()?;
         }
-        RunMode::StorageInit => {
-            println!("Running in STORAGE-INIT mode");
+        RunMode::Recovery => {
+            println!("Running in RECOVERY mode");
+        }
+        RunMode::InteractiveInstaller => {
+            println!("Running in INTERACTIVE mode");
+            run_interactive(ctx)?;
         }
     }
 
-    Ok(ctx)
+    Ok(())
 }
 
 fn dd(inf: &str, of: &str) -> Result<()> {
@@ -694,8 +840,13 @@ fn dd(inf: &str, of: &str) -> Result<()> {
 }
 
 fn mkfs_vfat(dev: &str, label: &str) -> Result<()> {
-    println!("Formating {} as VFAT", dev);
+    println!("Formatting {} as VFAT", dev);
     run_os_command(format!("mkfs.vfat -n {} {}", label, dev).as_str())
+}
+
+fn mkfs_ext4(dev: &str) -> Result<()> {
+    println!("Formatting {} as EXT4", dev);
+    run_os_command(format!("mkfs -t ext4 -v -F -F -O encrypt {}", dev).as_str())
 }
 
 fn mount(dev: &str, path: &Path) -> Result<()> {
@@ -704,9 +855,24 @@ fn mount(dev: &str, path: &Path) -> Result<()> {
 }
 
 fn mount_vfat(dev: &str, path: &Path) -> Result<()> {
+    println!("Mounting {} as {}", dev, path.to_string_lossy());
+
     run_os_command(
         format!(
             "mount -t vfat -o iocharset=iso8859-1 {} {}",
+            dev,
+            path.to_string_lossy()
+        )
+        .as_str(),
+    )
+}
+
+fn mount_ext4(dev: &str, path: &Path) -> Result<()> {
+    println!("Mounting {} as {}", dev, path.to_string_lossy());
+
+    run_os_command(
+        format!(
+            "mount -t ext4 -o dirsync,noatime {} {}",
             dev,
             path.to_string_lossy()
         )
@@ -718,17 +884,253 @@ fn umount(dev: &str) -> Result<()> {
     println!("Unmounting {}", dev);
     run_os_command(format!("umount {}", dev).as_str())
 }
+#[derive(Debug, Clone)]
+enum InstallerStep {
+    Start,
+    SelectInstallDisk(Option<String>),
+    SelectPersistDisk,
+    Install,
+    Done,
+}
+
+impl InstallerStep {}
+struct App<'a> {
+    ctx: &'a mut InstallerCtx,
+    steps: Vec<InstallerStep>,
+    current_step: InstallerStep,
+}
+
+struct Ui {
+    ui_states: Vec<Box<dyn UiActions>>,
+    current_state: usize,
+}
+
+impl Ui {
+    fn new() -> Self {
+        Self {
+            ui_states: vec![Box::new(UiStateShowDisks::new())],
+            current_state: 0,
+        }
+    }
+    fn get_ui_for_step(step: &InstallerStep) -> Box<dyn UiActions> {
+        match step {
+            InstallerStep::Start => Box::new(UiStepStart {}),
+            InstallerStep::SelectInstallDisk(_) => Box::new(UiStateShowDisks::new()),
+            InstallerStep::SelectPersistDisk => todo!(),
+            InstallerStep::Install => todo!(),
+            InstallerStep::Done => todo!(),
+        }
+    }
+}
+
+impl<'a> App<'a> {
+    fn new(ctx: &'a mut InstallerCtx) -> Self {
+        Self {
+            ctx: ctx,
+            steps: Vec::new(),
+            current_step: InstallerStep::Start,
+        }
+    }
+    fn next_step(&mut self) {
+        let next_step = match self.current_step {
+            InstallerStep::Start => InstallerStep::SelectInstallDisk(None),
+            InstallerStep::SelectInstallDisk(_) => {
+                self.current_step =
+                    InstallerStep::SelectInstallDisk(self.ctx.config.eve_install_disk.clone());
+                InstallerStep::SelectPersistDisk
+            }
+            InstallerStep::SelectPersistDisk => InstallerStep::Install,
+            InstallerStep::Install => InstallerStep::Done,
+            InstallerStep::Done => InstallerStep::Done,
+        };
+        self.steps.push(self.current_step.clone());
+        self.current_step = next_step;
+        println!("{:#?}", &self.steps);
+        println!("{:#?}", &self.current_step);
+    }
+}
+
+trait UiActions {
+    fn on_key(&mut self, key: KeyCode, app: &mut App);
+    fn draw(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>, app: &App);
+}
+
+struct UiStateShowDisks {
+    state: TableState,
+}
+
+impl UiStateShowDisks {
+    fn new() -> Self {
+        Self {
+            state: TableState::default(),
+        }
+    }
+    pub fn next(&mut self, app: &App) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i >= app.ctx.block_devices.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    pub fn previous(&mut self, app: &App) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    app.ctx.block_devices.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+}
+
+impl UiActions for UiStateShowDisks {
+    fn on_key(&mut self, key: KeyCode, app: &mut App) {
+        match key {
+            //KeyCode::Char('q') => return Ok(()),
+            // KeyCode::Left => app.items.unselect(),
+            KeyCode::Down => self.next(app),
+            KeyCode::Up => self.previous(app),
+            KeyCode::Enter => {
+                if let Some(selected) = self.state.selected() {
+                    app.ctx.config.eve_install_disk =
+                        Some(app.ctx.block_devices[selected].device_path_str());
+                    app.next_step()
+                }
+            }
+
+            _ => {}
+        }
+    }
+
+    fn draw(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>, app: &App) {
+        let rects = Layout::default()
+            .constraints([Constraint::Percentage(100)].as_ref())
+            .margin(5)
+            .split(f.size());
+
+        let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+        let normal_style = Style::default().bg(Color::Blue);
+        let header_cells = ["Disk", "Label", "Header3"]
+            .iter()
+            .map(|h| Cell::from(*h).style(Style::default().fg(Color::Red)));
+        let header = Row::new(header_cells)
+            .style(normal_style)
+            .height(1)
+            .bottom_margin(1);
+        let rows = app.ctx.block_devices.iter().map(|item| {
+            // let height = item.
+            //     .iter()
+            //     .map(|content| content.chars().filter(|c| *c == '\n').count())
+            //     .max()
+            //     .unwrap_or(0)
+            //     + 1;
+            let height = 1;
+            //let cells = item.iter().map(|c| Cell::from(*c));
+            let mut cells: Vec<Cell> = Vec::new();
+            cells.push(Cell::from(item.device_path_str()));
+            cells.push(Cell::from(
+                item.label
+                    .as_ref()
+                    .or(Some(&"".to_string()))
+                    .unwrap()
+                    .clone(),
+            ));
+            Row::new(cells).height(height as u16).bottom_margin(0)
+        });
+        let t = Table::new(rows)
+            .header(header)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title("Installation disk"),
+            )
+            .highlight_style(selected_style)
+            .highlight_symbol(">> ")
+            .widths(&[
+                Constraint::Percentage(50),
+                Constraint::Length(30),
+                Constraint::Min(10),
+            ]);
+        f.render_stateful_widget(t, rects[0], &mut self.state);
+    }
+}
+
+struct UiStepStart {}
+
+impl UiActions for UiStepStart {
+    fn on_key(&mut self, key: KeyCode, app: &mut App) {
+        app.next_step();
+    }
+
+    fn draw(&mut self, f: &mut Frame<CrosstermBackend<Stdout>>, app: &App) {}
+}
+
+fn run_app(
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    mut app: App,
+    tick_rate: Duration,
+    ui: &mut Ui,
+) -> io::Result<()> {
+    let mut last_tick = Instant::now();
+    loop {
+        //let state = &mut ui.ui_states[ui.current_state];
+        let mut state = Ui::get_ui_for_step(&app.current_step);
+        terminal.draw(|f| state.draw(f, &app))?;
+
+        let timeout = tick_rate
+            .checked_sub(last_tick.elapsed())
+            .unwrap_or_else(|| Duration::from_secs(0));
+        if crossterm::event::poll(timeout)? {
+            if let Event::Key(key) = event::read()? {
+                state.on_key(key.code, &mut app);
+            }
+        }
+        if last_tick.elapsed() >= tick_rate {
+            // app.on_tick();
+            last_tick = Instant::now();
+        }
+    }
+}
+
+fn ui() {
+    // Creates the cursive root - required for every application.
+    let mut siv = cursive::default();
+
+    // Creates a dialog with a single "Quit" button
+    siv.add_layer(
+        Dialog::around(TextView::new("Hello Dialog!"))
+            .title("Cursive")
+            .button("Quit", |s| s.quit()),
+    );
+
+    // Starts the event loop.
+    siv.run();
+}
 
 fn main() -> Result<()> {
     println!("Starting EVE installer...");
-    let res = get_blk_devices(false);
+    ui();
+    //FIXME: how to handle these errors???
+    let mut ctx = InstallerCtx::build()?;
 
-    println!("{:#?}", res);
-
-    match run_installer() {
+    match run_installer(&mut ctx) {
         Ok(_) => {
             println!("Installation completed");
-            run_os_command("/run-console.sh")?;
+            if ctx.config.eve_pause_after_install {
+                println!("==== entering shell on eve_pause_after_install ====");
+                run_os_command("/run-console.sh")?;
+            }
             Ok(())
         }
         Err(er) => {
@@ -738,7 +1140,4 @@ fn main() -> Result<()> {
             Err(er)
         }
     }
-
-    // //run_os_command("mount")?;
-    // //run_os_command("lsblk -anlb -o TYPE,NAME,SIZE,TRAN")?;
 }

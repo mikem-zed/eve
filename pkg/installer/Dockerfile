@@ -1,8 +1,8 @@
 ARG EVE_BUILDER_IMAGE=lfedge/eve-alpine:6.7.0
 FROM ${EVE_BUILDER_IMAGE} AS build
 
-ENV BUILD_PKGS curl build-base git 
-ENV PKGS alpine-baselayout musl-utils smartmontools bash mtools util-linux
+ENV BUILD_PKGS curl build-base git ncurses-dev
+ENV PKGS alpine-baselayout musl-utils smartmontools bash mtools util-linux e2fsprogs e2fsprogs-extra
 
 RUN eve-alpine-deploy.sh
 
@@ -26,6 +26,7 @@ RUN mkdir .cargo && echo $'[source.crates-io] \n\
 #and prebuild them
 COPY Cargo.toml .
 RUN mkdir src && touch src/lib.rs
+COPY cursive ./cursive
 RUN cargo build 
 #--offline
 
