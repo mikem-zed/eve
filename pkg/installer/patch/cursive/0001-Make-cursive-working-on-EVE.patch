@@ -1,0 +1,47 @@
+From 43c9592a25fed3e05782703be89438db9afa06f3 Mon Sep 17 00:00:00 2001
+From: Mikhail Malyshev <mikem@zededa.com>
+Date: Tue, 29 Mar 2022 16:00:40 +0000
+Subject: [PATCH] Make cursive working on EVE
+
+---
+ cursive/src/backends/crossterm.rs | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/cursive/src/backends/crossterm.rs b/cursive/src/backends/crossterm.rs
+index ead651e..d195d2a 100644
+--- a/cursive/src/backends/crossterm.rs
++++ b/cursive/src/backends/crossterm.rs
+@@ -37,11 +37,11 @@ use crate::{
+     theme, Vec2,
+ };
+ 
+-#[cfg(windows)]
++// #[cfg(windows)]
+ type Stdout = io::Stdout;
+ 
+-#[cfg(unix)]
+-type Stdout = std::fs::File;
++// #[cfg(unix)]
++// type Stdout = std::fs::File;
+ 
+ /// Backend using crossterm
+ pub struct Backend {
+@@ -203,11 +203,11 @@ impl Backend {
+             Hide
+         )?;
+ 
+-        #[cfg(unix)]
+-        let stdout =
+-            RefCell::new(BufWriter::new(std::fs::File::create("/dev/tty")?));
++        // #[cfg(unix)]
++        // let stdout =
++        //     RefCell::new(BufWriter::new(std::fs::File::create("/dev/tty")?));
+ 
+-        #[cfg(windows)]
++        // #[cfg(windows)]
+         let stdout = RefCell::new(BufWriter::new(io::stdout()));
+ 
+         Ok(Box::new(Backend {
+-- 
+2.25.1
+
