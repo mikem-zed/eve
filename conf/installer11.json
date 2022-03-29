@@ -1,0 +1,19 @@
+{
+    "eve_nuke_disks": null,
+    "eve_nuke_all_disks": false,
+    "eve_install_disk": "/dev/sdb",
+    "eve_persist_disk": [
+        "/dev/sdb"
+    ],
+    "eve_install_server": "http://server",
+    "eve_install_skip_rootfs": false,
+    "eve_install_skip_config": false,
+    "eve_install_skip_persist": false,
+    "eve_pause_before_install": false,
+    "eve_pause_after_install": true,
+    "eve_blackbox": false,
+    "eve_soft_serial": null,
+    "eve_reboot_after_install": false,
+    "eve_install_skip_zfs_checks": false,
+    "persist_fs_zfs": false
+}
