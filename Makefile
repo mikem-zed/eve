@@ -537,8 +537,15 @@ pkg/xen-tools: pkg/uefi eve-xen-tools
 	$(QUIET): $@: Succeeded
 pkg/qrexec-dom0: pkg/xen-tools eve-qrexec-dom0
 	$(QUIET): $@: Succeeded
+rust-index: pkg/installer/local-reg
+pkg/installer/Cargo.lock: pkg/installer/Cargo.toml
+	cargo update --manifest-path pkg/installer/Cargo.toml
+pkg/installer/local-reg: pkg/installer/Cargo.lock
+	cargo local-registry  --sync pkg/installer/Cargo.lock pkg/installer/local-reg
+	$(QUIET): $@: Succeeded
 pkg/%: eve-% FORCE
 	$(QUIET): $@: Succeeded
+eve-installer: rust-index
 
 $(RUNME) $(BUILD_YML):
 	cp pkg/eve/$(@F) $@

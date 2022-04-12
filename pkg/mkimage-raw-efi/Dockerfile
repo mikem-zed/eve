@@ -17,15 +17,6 @@ RUN mkdir -p efifs parts root bits config persist opt/zededa opt/debug lib/modul
 COPY make-raw install grub.cfg.in UsbInvocationScript.txt ./
 COPY grub.stage1 ./usr/lib/grub/i386-pc/boot.img
 
-# now lets create an edge container
-# FIXME: 003-installer? why not linuxkit build?
-WORKDIR /eco/media/root-rw/root/containers/onboot/003-installer
-COPY runtime.json config.json ./
-RUN mv /out rootfs
-# hadolint ignore=DL3003
-RUN (cd /eco && find . -xdev | grep -v installer.img | sort | cpio --quiet -o -H newc) | gzip > rootfs/installer.img
-RUN mv rootfs /out
-
 # bootstrap Alpine's initrd
 WORKDIR /
 COPY initramfs-init.patch /tmp/
