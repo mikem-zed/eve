@@ -36,10 +36,19 @@ RUN mkdir .cargo && echo $'[source.crates-io] \n\
     [source.local-registry] \n\
     local-registry = \'/local-reg\'' >> .cargo/config.toml
 
-#and prebuild them
+# cursive has a way to fine tune backend to use stdio but
+# I couldn't figure out how yet. this patch should eventually go away
+RUN git clone https://github.com/gyscos/cursive.git 
+WORKDIR /cursive
+RUN git checkout 3eada33c049c98f04ec00ee92b6c849d68cd322a
+COPY patch/cursive/* .
+RUN git apply *.patch
+WORKDIR /
+
+#and prebuild everything
 COPY Cargo.toml .
 RUN mkdir src && touch src/lib.rs
-COPY cursive ./cursive
+#COPY cursive ./cursive
 RUN cargo build --offline
 
 FROM build as rust-builder
