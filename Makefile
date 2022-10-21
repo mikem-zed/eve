@@ -1,6 +1,6 @@
 
 # Copyright (c) 2018 Zededa, Inc.
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0f
 #
 # Run make (with no arguments) to see help on what targets are available
 
@@ -383,7 +383,7 @@ $(KERNEL_IMG): PKG=kernel
 $(IPXE_IMG): PKG=ipxe
 $(BIOS_IMG): PKG=uefi
 $(UBOOT_IMG): PKG=u-boot
-$(EFI_PART) $(BOOT_PART) $(INITRD_IMG) $(INSTALLER_IMG) $(KERNEL_IMG) $(IPXE_IMG) $(BIOS_IMG) $(UBOOT_IMG): $(LINUXKIT) | $(INSTALLER)
+$(EFI_PART) $(BOOT_PART) $(INITRD_IMG) $(KERNEL_IMG) $(IPXE_IMG) $(BIOS_IMG) $(UBOOT_IMG): $(LINUXKIT) | $(INSTALLER)
 	mkdir -p $(dir $@)
 	$(LINUXKIT) pkg build --platforms linux/$(ZARCH) pkg/$(PKG) # running linuxkit pkg build _without_ force ensures that we either pull it down or build it.
 	cd $(dir $@) && $(LINUXKIT) cache export -arch $(DOCKER_ARCH_TAG) -format filesystem -outfile - $(shell $(LINUXKIT) pkg show-tag pkg/$(PKG)) | tar xvf - $(notdir $@)
@@ -550,7 +550,7 @@ $(LIVE).raw: $(BOOT_PART) $(EFI_PART) $(ROOTFS_IMG) $(CONFIG_IMG) $(PERSIST_IMG)
 	./tools/makeflash.sh -C 350 $| $@ $(PART_SPEC)
 	$(QUIET): $@: Succeeded
 
-$(INSTALLER).raw: $(BOOT_PART) $(EFI_PART) $(ROOTFS_IMG) $(INITRD_IMG) $(INSTALLER_IMG) $(CONFIG_IMG) $(PERSIST_IMG) | $(INSTALLER)
+$(INSTALLER).raw: $(BOOT_PART) $(EFI_PART) $(ROOTFS_IMG) $(INITRD_IMG) $(CONFIG_IMG) $(PERSIST_IMG) | $(INSTALLER)
 	./tools/makeflash.sh -C 350 $| $@ "conf_win installer inventory_win"
 	$(QUIET): $@: Succeeded
 
@@ -597,7 +597,7 @@ eve-installer: rust-index
 $(RUNME) $(BUILD_YML):
 	cp pkg/eve/$(@F) $@
 
-EVE_ARTIFACTS=$(BIOS_IMG) $(EFI_PART) $(CONFIG_IMG) $(PERSIST_IMG) $(INITRD_IMG) $(INSTALLER_IMG) $(ROOTFS_IMG) fullname-rootfs $(BOOT_PART)
+EVE_ARTIFACTS=$(BIOS_IMG) $(EFI_PART) $(CONFIG_IMG) $(PERSIST_IMG) $(INITRD_IMG) $(ROOTFS_IMG) fullname-rootfs $(BOOT_PART)
 eve: $(INSTALLER) $(EVE_ARTIFACTS) current $(RUNME) $(BUILD_YML) | $(BUILD_DIR)
 	$(QUIET): "$@: Begin: EVE_REL=$(EVE_REL), HV=$(HV), LINUXKIT_PKG_TARGET=$(LINUXKIT_PKG_TARGET)"
 	cp images/*.yml $|
