@@ -1,4 +1,4 @@
-ARG EVE_BUILDER_IMAGE=lfedge/eve-alpine:6.7.0
+ARG EVE_BUILDER_IMAGE=lfedge/eve-alpine:145f062a40639b6c65efa36bed1c5614b873be52
 FROM ${EVE_BUILDER_IMAGE} AS build
 
 ENV BUILD_PKGS curl build-base git 
