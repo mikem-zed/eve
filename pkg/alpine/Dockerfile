@@ -1,8 +1,9 @@
 # image was bootstraped using FROM lfedge/eve-alpine-base:f11c7a5dcffe1ab7b466bea7e26010a27da62b3b AS cache
 # to update please see https://github.com/lf-edge/eve/blob/master/docs/BUILD.md#how-to-update-eve-alpine-package
-FROM lfedge/eve-alpine:9fb9b9cbf7d90066a70e4704d04a6fe248ff52bb AS cache
+# FROM lfedge/eve-alpine:9fb9b9cbf7d90066a70e4704d04a6fe248ff52bb AS cache
+FROM lfedge/eve-alpine-base:3d57c39501b53bea3337fc4259788ff631423b5a
 
-ARG ALPINE_VERSION=3.16
+ARG ALPINE_VERSION=3.18
 # this is only needed once, when this package
 # is rebased on the new version of Alpine and
 # you have to have FROM alpine:x.y.z above:
@@ -39,7 +40,8 @@ RUN cp /mirror/${ALPINE_VERSION}/rootfs/etc/apk/repositories /etc/apk
 RUN cat /mirror/edge/rootfs/etc/apk/repositories >> /etc/apk/repositories
 RUN apk update
 
-FROM lfedge/eve-alpine:145f062a40639b6c65efa36bed1c5614b873be52 AS compactor
+FROM lfedge/eve-alpine-base:3d57c39501b53bea3337fc4259788ff631423b5a AS compactor
+#FROM lfedge/eve-alpine:145f062a40639b6c65efa36bed1c5614b873be52 AS compactor
 
 COPY --from=cache /etc/apk/repositories* /etc/apk/
 COPY --from=cache /etc/apk/keys /etc/apk/keys/
