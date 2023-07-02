@@ -1,5 +1,8 @@
 FROM busybox@sha256:ef320ff10026a50cf5f0213d35537ce0041ac1d96e9b7800bafd8bc9eff6c693 AS builder
 
+ENV ALPINE_VERSION=3.18
+ENV MINI_ROOTFS_VERSION=${ALPINE_VERSION}.2
+
 WORKDIR /rootfs
 
 # Since riscv64 is not officially supported yet, we use distinct package source
@@ -7,7 +10,7 @@ WORKDIR /rootfs
 # and replace with https for repo url
 RUN case $(uname -m) in \
     x86_64|aarch64) \
-        ROOTFS_URL="https://dl-cdn.alpinelinux.org/alpine/v3.16/releases/$(uname -m)/alpine-minirootfs-3.16.2-$(uname -m).tar.gz"; \
+        ROOTFS_URL="https://dl-cdn.alpinelinux.org/alpine/v$ALPINE_VERSION/releases/$(uname -m)/alpine-minirootfs-$MINI_ROOTFS_VERSION-$(uname -m).tar.gz"; \
         ;; \
     riscv64) \
         ROOT_URL=http://storage.googleapis.com/eve-alpine && \
@@ -22,8 +25,8 @@ RUN case $(uname -m) in \
         wget -q -P etc/apk/keys \
             "$ROOT_URL/keys/builder@projecteve.dev-62fe6660.rsa.pub" && \
         ROOT_URL=https://storage.googleapis.com/eve-alpine && \
-        echo "$ROOT_URL/v3.16/main" > etc/apk/repositories && \
-        echo "$ROOT_URL/v3.16/community" >> etc/apk/repositories && \
+        echo "$ROOT_URL/v$(ALPINE_VERSION)/main" > etc/apk/repositories && \
+        echo "$ROOT_URL/v$(ALPINE_VERSION)/community" >> etc/apk/repositories && \
         echo "$ROOT_URL" > etc/apk/cache.url; \
     fi
 
